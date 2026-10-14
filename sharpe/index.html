@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>夏普比率 ｜ 每承担一份波动，赚到了多少超额收益</title>
+<meta name="description" content="夏普比率深入浅出讲解：公式与三个输入的来源、手算例子、√T 年化、经验刻度与统计显著性、用 FRED 真实数据（标普500/纳斯达克/3个月国库券）实测十年夏普、七个常见陷阱、与索提诺/卡玛/信息比率的分工。数据附来源。">
+<style>
+  :root{
+    --bg:#fbfaf8;--fg:#1c1b1a;--muted:#6b6862;--border:#e6e2db;--card:#fff;
+    --accent:#1f6f5c;--accent-soft:#eaf3ef;--code:#f3f0eb;--ok:#2f6f4f;--warn:#9a6a12;--alt:#8a5a2b;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#141413;--fg:#eceae6;--muted:#9c988e;--border:#312f2c;--card:#1c1b1a;
+      --accent:#6fd0b3;--accent-soft:#16241f;--code:#252422;--ok:#6fbf94;--warn:#d9ad57;--alt:#d9a05b;}
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.78}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  .back{display:inline-block;margin:22px 0 0;font-size:13.5px}
+  header.hero{padding:14px 0 30px;border-bottom:1px solid var(--border)}
+  .kicker{font-size:13px;letter-spacing:.16em;color:var(--muted);margin:0 0 12px;text-transform:uppercase}
+  h1{font-size:clamp(32px,6.4vw,50px);line-height:1.12;margin:0;font-weight:700;letter-spacing:.01em}
+  h1 small{display:block;font-size:15px;font-weight:400;letter-spacing:0;color:var(--muted);margin-top:10px}
+  .lede{font-size:17px;color:var(--muted);margin:14px 0 0;max-width:62ch}
+  nav.toc{margin:20px 0 0;padding:14px 0 0;border-top:1px solid var(--border);font-size:14px;display:flex;gap:8px;flex-wrap:wrap}
+  nav.toc a{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px 12px;text-decoration:none;border-bottom:1px solid var(--border)}
+  main{padding:0 0 60px}
+  section{padding:40px 0 10px;border-top:1px solid var(--border)}
+  section:first-of-type{border-top:none;padding-top:26px}
+  h2{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px}
+  h3{font-size:16.5px;margin:26px 0 6px}
+  h4{font-size:15px;margin:20px 0 4px;color:var(--muted);font-weight:600}
+  p{margin:11px 0}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 16px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 32%,transparent);word-break:break-all}
+  a:hover{border-bottom-color:var(--accent)}
+  .tldr{background:var(--accent-soft);border:1px solid var(--border);border-left:3px solid var(--accent);
+        border-radius:var(--radius);padding:16px 22px;margin:20px 0 6px}
+  .tldr h3{margin:0 0 8px;font-size:15px;letter-spacing:.02em}
+  .tldr ul{margin:0;padding-left:20px}
+  .tldr li{margin:6px 0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:11px;margin:18px 0 6px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+  .card .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .card .v{font-size:20px;font-weight:700;margin:3px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .v.sm{font-size:15px;line-height:1.5}
+  .card .d{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .tblwrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:540px}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{background:color-mix(in srgb,var(--fg) 4%,var(--card));font-weight:600;font-size:13px;white-space:nowrap;letter-spacing:.02em}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+  td.num,th.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .up{color:var(--ok);font-weight:600}
+  .down{color:var(--accent);font-weight:600}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:.9em;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--code);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.65;margin:14px 0;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre .c{color:var(--muted)}
+  .quote{border-left:3px solid var(--border);padding:2px 0 2px 16px;margin:14px 0;color:var(--muted);font-size:15px}
+  .quote b{color:var(--fg)}
+  ul.tight{margin:10px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  .fig{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px 6px;margin:18px 0}
+  .fig svg{width:100%;height:auto;display:block}
+  .fig figcaption{font-size:12.5px;color:var(--muted);margin:6px 0 4px;line-height:1.6}
+  svg .gl{stroke:color-mix(in srgb,var(--fg) 15%,transparent);stroke-width:1}
+  svg .axl{stroke:color-mix(in srgb,var(--fg) 30%,transparent);stroke-width:1.2}
+  svg .ln1{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linejoin:round}
+  svg .ln2{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5;stroke-linejoin:round}
+  svg .ln3{fill:none;stroke:var(--alt);stroke-width:2;stroke-dasharray:2 4;stroke-linejoin:round}
+  svg .dot{fill:var(--accent)}
+  svg .dot2{fill:var(--alt)}
+  svg .ax{fill:var(--muted);font-size:11px}
+  svg .ax.mid{text-anchor:middle}
+  svg .cap{fill:var(--muted);font-size:11.5px}
+  svg .cap.mid{text-anchor:middle}
+  svg .lb{font-size:12px;font-weight:600}
+  svg .lb.end{text-anchor:end}
+  svg .lbx{font-size:11.5px;font-weight:600;fill:var(--accent)}
+  svg .l1{fill:var(--accent)}
+  svg .l2{fill:var(--muted)}
+  svg .l3{fill:var(--alt)}
+  .formula{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+           padding:16px 18px;margin:16px 0;font-size:18px;text-align:center;
+           font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .note{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--warn);
+        border-radius:var(--radius);padding:12px 16px;margin:16px 0;font-size:14.5px}
+  .note b{color:var(--fg)}
+  footer{border-top:1px solid var(--border);padding:24px 0 60px;color:var(--muted);font-size:13.5px}
+  footer p{margin:6px 0}
+  @media (max-width:640px){body{font-size:15.5px}.wrap{padding:0 16px}h2{font-size:20px}th,td{padding:8px 11px}
+    .formula{font-size:15px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="../">← 返回目录</a>
+
+<header class="hero">
+  <p class="kicker">金融指标解释 · 风险调整后收益</p>
+  <h1>夏普比率<small>Sharpe Ratio · 风险调整后收益的开山指标</small></h1>
+  <p class="lede">一句话：夏普比率 = <b>每多承担一单位波动，能多拿到多少超出无风险利率的收益</b>。
+     它把「赚了多少」和「颠了多少」压缩成一个数，所以既能一眼比高下，也最容易被一个数字骗过去。</p>
+
+  <nav class="toc">
+    <a href="#tldr">结论速览</a>
+    <a href="#intro">01 一句话理解</a>
+    <a href="#inputs">02 三个输入</a>
+    <a href="#formula">03 公式与年化</a>
+    <a href="#how">04 手算一遍</a>
+    <a href="#read">05 怎么读数值</a>
+    <a href="#real">06 真实数据实测</a>
+    <a href="#pitfalls">07 七个陷阱</a>
+    <a href="#others">08 与其他指标对比</a>
+    <a href="#glossary">09 术语表</a>
+    <a href="#sources">数据来源</a>
+  </nav>
+</header>
+
+<main>
+
+<section id="tldr">
+  <h2><span class="n">◎</span>结论速览</h2>
+
+  <div class="cards">
+    <div class="card">
+      <div class="k">公式（只有一个）</div>
+      <div class="v sm">(收益 − 无风险利率) ÷ 收益的标准差</div>
+      <div class="d">分子是「多赚的」，分母是「颠的程度」。两个数都来自同一段历史。</div>
+    </div>
+    <div class="card">
+      <div class="k">手算示例（12 个月）</div>
+      <div class="v">2.18</div>
+      <div class="d">月均超额 0.733% ÷ 月波动 1.165% = 月度夏普 0.63，年化 ×√12 = 2.18</div>
+    </div>
+    <div class="card">
+      <div class="k">真实数据（FRED 十年）</div>
+      <div class="v">0.68</div>
+      <div class="d">标普 500 近十年夏普；同期纳斯达克综合 0.75、最大回撤 −33.9% / −36.4%</div>
+    </div>
+    <div class="card">
+      <div class="k">原作者的基准数</div>
+      <div class="v">0.40</div>
+      <div class="d">夏普 1994 年论文里的示例：年超额 6%、标准差 15% → 夏普 0.40</div>
+    </div>
+  </div>
+
+  <div class="tldr">
+    <h3>如果只记 7 件事</h3>
+    <ul>
+      <li><b>它是「性价比」，不是「收益率」</b>：夏普 2 的资产可能年化只有 6%，夏普 0.5 的资产年化 20%。它衡量的是每一单位波动换了多少超额收益。</li>
+      <li><b>分子要减去无风险利率</b>：不减的话衡量的是「承担风险值不值」，不是「相对国债值不值」。同一个标普 500，十年夏普在用三个月国库券时是 0.68、按 0 计算是 0.81。</li>
+      <li><b>分母只看波动，不看方向</b>：上涨的剧烈波动也会被计为风险，所以它天生「不喜欢」暴涨暴跌，和人的直觉不完全一致。</li>
+      <li><b>年化要按 √T 折算</b>：日频 ×√252、月频 ×√12。这个折算假设各期收益互不相关，做得到才能比。</li>
+      <li><b>窗口决定结论</b>：同一个标普 500，2017 年夏普 2.45，2018 年 −0.46，2022 年 −0.89。看到夏普一定要问「哪一段、什么频率、无风险利率取多少」。</li>
+      <li><b>统计显著性有硬门槛</b>：t 统计量 = 夏普 × √年数，要 t &gt; 2 才算站得住。一年数据的夏普必须大于 2.0 才有意义，十年数据只要 0.63。</li>
+      <li><b>它看不见「尾部」和「回撤」</b>：卖期权、庞氏型策略在出事前的夏普极高（本页示例 12.67），一次 −40% 就掉到 0.24。所以夏普要和最大回撤、索提诺比率一起读。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="intro">
+  <h2><span class="n">01</span>一句话理解</h2>
+  <p class="sub">把「多赚的部分」除以「为了多赚而承受的颠簸」，就得到夏普比率。</p>
+
+  <p>它的正式定义是：<b>资产收益与无风险收益之差，除以该差值的标准差</b>。
+     维基百科的表述是它衡量「调整风险之后、相对无风险资产的表现」，
+     代表「投资者每一单位风险增加所额外获得的收益」；威廉·夏普 1966 年提出时把它叫作
+     <b>reward-to-variability ratio（收益-波动比）</b>，1994 年他本人把定义修订为下面的 ex ante / ex post 两版。</p>
+
+  <div class="quote">
+    <b>类比</b>：两位司机都走完同一段路，平均时速都是 100 km/h。A 全程匀速；B 一路急加到 160、又急刹到 40。<br>
+    终点一样、平均一样 —— 但 A 的「每单位油门抖动换来的速度」高得多。<b>夏普比率度量的就是这件事</b>：
+    不是谁跑得快，而是谁的「多赚」在扣掉波动后最划算。
+  </div>
+
+  <h3>为什么需要它：两个资产，两个说法</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>资产</th><th class="num">月均超额</th><th class="num">月波动</th><th class="num">月度夏普</th><th class="num">年化夏普</th></tr></thead>
+    <tbody>
+      <tr><td>示例 A：稳健（小幅来回）</td><td class="num">+0.50%</td><td class="num">1.04%</td><td class="num">0.48</td><td class="num"><b>1.66</b></td></tr>
+      <tr><td>示例 B：激进（同样均值、3 倍波动）</td><td class="num">+1.00%</td><td class="num">3.13%</td><td class="num">0.32</td><td class="num"><b>1.11</b></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>B 的月均超额是 A 的两倍，但 A 的夏普更高 —— 因为 A 每一单位波动换来的超额更多。
+     只报收益率时 B 看起来更好；加上风险后结论就反过来了。这正是夏普比率被广泛使用的原因。</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 330" role="img" aria-label="夏普比率是超额收益与波动的斜率：斜率越陡，夏普越高"><text class="cap" x="56.0" y="16.0">年化超额收益（%）</text><text class="cap mid" x="300.0" y="324.0">年化波动（%）</text><line class="gl" x1="56.0" y1="284.0" x2="544.0" y2="284.0"/><text class="ax" x="48.0" y="288.0">0</text><line class="gl" x1="56.0" y1="221.5" x2="544.0" y2="221.5"/><text class="ax" x="48.0" y="225.5">5</text><line class="gl" x1="56.0" y1="159.0" x2="544.0" y2="159.0"/><text class="ax" x="48.0" y="163.0">10</text><line class="gl" x1="56.0" y1="96.5" x2="544.0" y2="96.5"/><text class="ax" x="48.0" y="100.5">15</text><line class="gl" x1="56.0" y1="34.0" x2="544.0" y2="34.0"/><text class="ax" x="48.0" y="38.0">20</text><text class="ax mid" x="56.0" y="303.0">0</text><text class="ax mid" x="153.6" y="303.0">5</text><text class="ax mid" x="251.2" y="303.0">10</text><text class="ax mid" x="348.8" y="303.0">15</text><text class="ax mid" x="446.4" y="303.0">20</text><text class="ax mid" x="544.0" y="303.0">25</text><line class="ln2" x1="56.0" y1="284.0" x2="544.0" y2="71.5"/><text class="lb l2" x="436.6" y="109.2">夏普 = 0.68 等值线</text><line class="axl" x1="56.0" y1="284.0" x2="56.0" y2="34.0"/><circle class="dot" cx="408.7" cy="131.3" r="4.5"/><circle class="dot" cx="488.4" cy="76.6" r="4.5"/><circle class="dot2" cx="126.3" cy="209.0" r="4.5"/><circle class="dot2" cx="267.6" cy="134.0" r="4.5"/><text class="lb l1 end" x="408.7" y="118.3">标普 500 · 夏普 0.68</text><text class="lb l1 end" x="488.4" y="63.6">纳斯达克综合 · 0.75</text><text class="lb l2" x="134.3" y="198.0">示例 A 稳健 · 1.66</text><text class="lb l2" x="275.6" y="151.0">示例 B 激进 · 1.11</text></svg>
+    <figcaption>横轴是年化波动，纵轴是年化超额收益。<b>夏普比率就是这张图上「从原点连到该点」这条线的斜率</b>：
+    同样斜率（同一条虚线）上的资产夏普相同。斜率越陡，性价比越高。图中标出了真实算出来的标普 500、纳斯达克综合，以及上面两个示例资产。</figcaption>
+  </figure>
+</section>
+
+<section id="inputs">
+  <h2><span class="n">02</span>三个输入，各自从哪来</h2>
+  <p class="sub">公式只有三个零件，但每一个都有口径选择，选错就不可比。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>输入</th><th>怎么取</th><th>常见口径分歧</th></tr></thead>
+    <tbody>
+      <tr><td><b>资产收益 R<sub>a</sub></b>（分子被减数）</td><td>一段时间内的收益率序列（日/月/季）</td>
+          <td>含不含股息与费用？价格指数还是全收益指数？名义还是实际（要不要扣通胀）？</td></tr>
+      <tr><td><b>无风险利率 R<sub>f</sub></b>（分子减数）</td><td>实务上用短期国债收益率：本页用美国 3 个月期国库券（FRED: DTB3）</td>
+          <td>用 0？用 3 个月？用 10 年期？期限与投资期不匹配；用税前还是税后</td></tr>
+      <tr><td><b>波动 σ</b>（分母）</td><td>超额收益序列的标准差（样本标准差，分母 n−1）</td>
+          <td>用绝对值还是超额收益的波动（理论上应后者，实务上两者常几乎相同）</td></tr>
+      <tr><td class="num">→ 夏普比率</td><td colspan="2">三个输入全部来自<b>同一段历史、同一频率、同一币种</b>，结果才有意义</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note">
+    <b>术语：为什么可以用「标准差」代表风险？</b>　标准差衡量收益率围绕均值的离散程度：数值越大，结果越不可预测。
+    但这只在收益率近似「钟形分布（正态分布）」时才等于「风险的全部」。真实市场收益率是<b>尖峰厚尾</b>的
+    —— 平时很安静，偶尔来一次极端行情（这正是第 07 节要讲的坑）。<br>
+    <b>术语：无风险利率为什么用短期国债？</b>　因为它违约风险极低、期限短、市场深度大，是最接近「不承担风险也能拿到的收益」的可观测数字。
+    它不是真的零风险（有通胀与再投资风险），只是实务上的最佳近似。
+  </div>
+</section>
+
+<section id="formula">
+  <h2><span class="n">03</span>公式与年化</h2>
+  <p class="sub">两行公式，一行 Excel。核心难点不在公式，而在「年化」。</p>
+
+  <h4>第 1 步：算出每一期的超额收益</h4>
+  <div class="formula">d<sub>t</sub> = R<sub>a,t</sub> − R<sub>f,t</sub></div>
+  <p>第 t 期的超额收益 = 资产收益 − 同期无风险利率。注意<b>是逐期相减，不是年度数字相减</b>。</p>
+
+  <h4>第 2 步：均值除以标准差</h4>
+  <div class="formula">夏普<sub>期</sub> = ( d 的均值 ) ÷ ( d 的标准差 )　　→　　夏普<sub>年</sub> = 夏普<sub>期</sub> × √T</div>
+  <p>夏普 1994 年论文里给出的年化惯例正是：<b>均值乘 T、标准差乘 √T</b>（T 为一年内的期数）。
+     日频 T=252、周频 T=52、月频 T=12、季频 T=4。因为是「均值 ÷ 标准差」，比值就整体乘上 √T。</p>
+
+  <h4>第 3 步：三种工具，一个结果</h4>
+<pre><span class="c"># Excel：假设 A1:A60 是逐期超额收益</span>
+=AVERAGE(A1:A60)/STDEV(A1:A60)          <span class="c">→ 期间夏普（夏普 1994 原文给的写法）</span>
+=AVERAGE(A1:A60)/STDEV(A1:A60)*SQRT(12) <span class="c">→ 月度数据 → 年化</span>
+=SQRT(252)*AVERAGE(A1:A252)/STDEV(A1:A252)  <span class="c">→ 日数据 → 年化</span>
+
+<span class="c"># Python（本页所有数字都是这么算的）</span>
+import statistics as st, math
+d = [x - rf for x, rf in zip(returns, rf_series)]   <span class="c"># 逐期超额收益</span>
+sharpe = st.mean(d) / st.stdev(d) * math.sqrt(252)  <span class="c"># st.stdev 默认分母 n-1</span></pre>
+
+  <div class="note">
+    <b>√T 法则的前提</b>　它假设各期收益<b>互不相关、波动稳定</b>。如果收益有自相关（动量或均值回复）或波动聚集（平静期之后突然放大），
+    年化就只是一个约定，不代表倍数关系。夏普 1994 原文有一节专门叫「Time Dependence（时间依赖）」：
+    <b>夏普比率与你选择的度量期间并不独立</b>。
+  </div>
+</section>
+
+<section id="how">
+  <h2><span class="n">04</span>手算一遍</h2>
+  <p class="sub">给你 12 个月的超额收益，从头算出年化夏普。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">月份</th><th class="num">超额收益（%）</th></tr></thead>
+    <tbody><tr><td class="num">第 1 月</td><td class="num">+1.2%</td></tr><tr><td class="num">第 2 月</td><td class="num">−0.8%</td></tr><tr><td class="num">第 3 月</td><td class="num">+1.6%</td></tr><tr><td class="num">第 4 月</td><td class="num">+0.4%</td></tr><tr><td class="num">第 5 月</td><td class="num">+2.1%</td></tr><tr><td class="num">第 6 月</td><td class="num">−1.3%</td></tr><tr><td class="num">第 7 月</td><td class="num">+0.9%</td></tr><tr><td class="num">第 8 月</td><td class="num">+1.5%</td></tr><tr><td class="num">第 9 月</td><td class="num">−0.6%</td></tr><tr><td class="num">第 10 月</td><td class="num">+2.4%</td></tr><tr><td class="num">第 11 月</td><td class="num">+0.3%</td></tr><tr><td class="num">第 12 月</td><td class="num">+1.1%</td></tr></tbody>
+  </table>
+  </div>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>步骤</th><th class="num">结果</th></tr></thead>
+    <tbody>
+      <tr><td>把 12 个月的超额收益加起来除以 12</td><td class="num">0.733%</td></tr>
+      <tr><td>算样本标准差（分母用 n−1 = 11）</td><td class="num">1.165%</td></tr>
+      <tr><td>月度夏普 = 均值 ÷ 标准差</td><td class="num">0.630</td></tr>
+      <tr><td>年化：× √12（≈3.464）</td><td class="num"><b>2.18</b></td></tr>
+
+    </tbody>
+  </table>
+  </div>
+  <p>结论：这段历史的年化夏普约 <b>2.18</b>。注意这里用<b>样本标准差（分母 11）</b>：
+     理论上要估计总体波动该用 n−1；若用总体标准差（分母 12），结果会略高（约 2.28）。不同软件默认值不同，比较时必须统一。</p>
+</section>
+
+<section id="read">
+  <h2><span class="n">05</span>怎么读数值</h2>
+  <p class="sub">先说数学上唯一硬的标准：显著性；再说业内的经验刻度。</p>
+
+  <h3>经验刻度（行业惯例，不是定理）</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">夏普区间</th><th>含义</th><th>要注意</th></tr></thead>
+    <tbody><tr><td class="num">< 0</td><td>跑输无风险资产</td><td>亏钱或不如买国债，先看有没有算错口径</td></tr><tr><td class="num">0 ~ 0.5</td><td>性价比偏弱</td><td>承担的波动没有换来足够的超额收益</td></tr><tr><td class="num">0.5 ~ 1</td><td>一般</td><td>接近长期宽基指数（本页标普 500 十年为 0.68）</td></tr><tr><td class="num">1 ~ 2</td><td>良好</td><td>多数优秀公募/对冲策略的常见区间</td></tr><tr><td class="num">2 ~ 3</td><td>优秀</td><td>通常出现在特定窗口或低波动策略上，要怀疑窗口选择</td></tr><tr><td class="num">> 3</td><td>极好（先怀疑）</td><td>常见于数据太短、按季估值、卖期权/庞氏型策略</td></tr></tbody>
+  </table>
+  </div>
+
+  <h3>唯一硬的判断标准：t 统计量 = 夏普 × √年数</h3>
+  <p>夏普是历史平均除以波动，本身带估计误差。夏普 1994 原文指出：<b>t 统计量等于夏普比率乘以观测期数的平方根</b>。
+     要 |t| &gt; 2 才算在 5% 水平上统计显著，于是得到一条很有用的门槛：<b>年化夏普必须大于 2 ÷ √年数</b>。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">观测年数</th><th class="num">夏普门槛（2 ÷ √年数）</th><th>含义</th></tr></thead>
+    <tbody><tr><td class="num">1 年</td><td class="num">2.00</td><td>一年数据无论夏普多高都几乎没有统计意义</td></tr><tr><td class="num">3 年</td><td class="num">1.15</td><td>要 1.15 以上才勉强显著</td></tr><tr><td class="num">5 年</td><td class="num">0.89</td><td>要 0.89 以上</td></tr><tr><td class="num">10 年</td><td class="num">0.63</td><td>要 0.63 以上（标普 500 十年 0.68 刚好过线）</td></tr><tr><td class="num">20 年</td><td class="num">0.45</td><td>要 0.45 以上</td></tr><tr><td class="num">30 年</td><td class="num">0.37</td><td>要 0.37 以上</td></tr></tbody>
+  </table>
+  </div>
+  <p>这条门槛解释了为什么「某基金三年夏普 2.5」不值得兴奋：三年需要的门槛是 1.15，看着过了，
+     但三年只有 36 个月度数据、样本太少，而且窗口往往是被精挑过的。本页标普 500 十年夏普 0.68、t = 2.13
+     （精确按 2,511 个日观测算得；用 0.68 × √9.96 年也是同一个数），刚好过线 ——
+     也就是说「美股长期跑赢国债」这件事，用十年数据才勉强能说「有统计证据」。</p>
+
+  <div class="note">
+    <b>一个长期锚点（来自维基百科夏普比率条目）</b>　伯克希尔·哈撒韦 1976–2017 年的夏普是 <b>0.79</b>，
+    同期美国股市整体是 <b>0.49</b>；它是所有拥有 30 年以上历史的股票或共同基金里最高的。
+    注意这里的两个数字来自不同来源（0.79 是他人测算），但量级给了很好的参照：<b>长期 0.5 左右是「宽基市场」的常态，
+    长期 0.8 已经是几十年一遇的纪录</b>。
+  </div>
+
+  <h3>把夏普翻译成一句话：每年每 1% 波动，换来多少超额</h3>
+  <p>夏普 = 年化超额 ÷ 年化波动，所以 <b>年化超额 ≈ 夏普 × 年化波动</b>。
+     夏普 1、波动 15% 的资产，其超额收益约 15%/年；夏普 0.68、波动 18.07% 的标普 500，超额约 12.22%/年（本页实测值）。</p>
+</section>
+
+<section id="real">
+  <h2><span class="n">06</span>真实数据实测</h2>
+  <p class="sub">数据：FRED 的标普 500 指数、纳斯达克综合指数、3 个月期国库券收益率（DTB3），窗口 2016-10-14 → 2026-10-13（2,511 个交易日）。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>指标（日频，已年化）</th><th class="num">标普 500</th><th class="num">纳斯达克综合</th></tr></thead>
+    <tbody>
+      <tr><td>年化收益（价格指数，不含股息）</td><td class="num">14.66%</td><td class="num">19.04%</td></tr>
+      <tr><td>年化波动（日收益标准差 × √252）</td><td class="num">18.07%</td><td class="num">22.15%</td></tr>
+      <tr><td>年化无风险利率（3 个月期国库券均值）</td><td class="num">2.44%</td><td class="num">2.44%</td></tr>
+      <tr><td>年化超额收益</td><td class="num">12.22%</td><td class="num">16.59%</td></tr>
+      <tr><td><b>夏普比率</b></td><td class="num"><b>0.68</b></td><td class="num"><b>0.75</b></td></tr>
+      <tr><td>t 统计量（夏普 × √年数）</td><td class="num">2.13</td><td class="num">2.36</td></tr>
+      <tr><td>最大回撤</td><td class="num">-33.9%（2020-03-23）</td><td class="num">-36.4%（2022-12-28）</td></tr>
+      <tr><td>索提诺比率（只罚下行波动）</td><td class="num">0.95</td><td class="num">1.06</td></tr>
+      <tr><td>卡玛比率（年化收益 ÷ 最大回撤）</td><td class="num">0.43</td><td class="num">0.52</td></tr>
+      <tr><td>期间累计收益</td><td class="num">266%</td><td class="num">422%</td></tr>
+</tbody>
+  </table>
+  </div>
+  <p>几个可以自己验证的读法：<b>①</b>纳斯达克十年跑赢标普 4.4 个百分点（19.04% vs 14.66%），但波动高出 4.1 个百分点，
+     两者夏普很接近（0.75 vs 0.68）—— 多赚的部分基本被多冒的风险吃掉了。
+     <b>②</b>杠杆不改变夏普：把标普仓位翻倍，超额收益和波动同比例放大，比值不变（融资成本会把它压低）。
+     <b>③</b>十年最大回撤 −33.9% 和 −36.4% 是夏普看不见的信息 —— 它是这三行数字里唯一能告诉你「当时有多难受」的。</p>
+
+  <h3>窗口敏感：同一指数的逐年夏普</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">年份</th><th class="num">年化收益</th><th class="num">年化波动</th><th class="num">年化超额</th><th class="num">夏普</th><th class="num">最大回撤</th></tr></thead>
+    <tbody><tr><td class="num">2017</td><td class="num">17.26%</td><td class="num">6.65%</td><td class="num">16.33%</td><td class="num"><b>2.45</b></td><td class="num">-2.8%</td></tr><tr><td class="num">2018</td><td class="num">-5.87%</td><td class="num">17.06%</td><td class="num">-7.81%</td><td class="num"><b>-0.46</b></td><td class="num">-19.8%</td></tr><tr><td class="num">2019</td><td class="num">26.13%</td><td class="num">12.49%</td><td class="num">24.08%</td><td class="num"><b>1.93</b></td><td class="num">-6.8%</td></tr><tr><td class="num">2020</td><td class="num">20.22%</td><td class="num">34.49%</td><td class="num">19.87%</td><td class="num"><b>0.58</b></td><td class="num">-33.9%</td></tr><tr><td class="num">2021</td><td class="num">26.26%</td><td class="num">13.03%</td><td class="num">26.22%</td><td class="num"><b>2.01</b></td><td class="num">-5.2%</td></tr><tr><td class="num">2022</td><td class="num">-19.50%</td><td class="num">24.21%</td><td class="num">-21.55%</td><td class="num"><b>-0.89</b></td><td class="num">-25.4%</td></tr><tr><td class="num">2023</td><td class="num">23.23%</td><td class="num">13.11%</td><td class="num">18.15%</td><td class="num"><b>1.38</b></td><td class="num">-10.3%</td></tr><tr><td class="num">2024</td><td class="num">22.41%</td><td class="num">12.66%</td><td class="num">17.45%</td><td class="num"><b>1.38</b></td><td class="num">-8.5%</td></tr><tr><td class="num">2025</td><td class="num">17.33%</td><td class="num">18.79%</td><td class="num">13.27%</td><td class="num"><b>0.71</b></td><td class="num">-18.9%</td></tr></tbody>
+  </table>
+  </div>
+  <p>同一个指数，十年里夏普从 <b>2.45（2017）</b>一路到 <b>−0.89（2022）</b>。
+     2017 与 2021 的高夏普并非「策略突然变强」，而是那两年波动极低且单边上涨；2022 的负夏普同理。
+     报告里只放一个区间平均，等于把这段差异藏起来了。</p>
+
+  <h3>换成 3 年滚动窗口，结论会怎样摇摆</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">3 年窗口</th><th class="num">年化超额</th><th class="num">夏普</th><th class="num">最大回撤</th></tr></thead>
+    <tbody><tr><td class="num">2016-10 → 2019-10</td><td class="num">10.36%</td><td class="num">0.80</td><td class="num">-19.8%</td></tr><tr><td class="num">2017-10 → 2020-10</td><td class="num">11.75%</td><td class="num">0.51</td><td class="num">-33.9%</td></tr><tr><td class="num">2018-10 → 2021-10</td><td class="num">17.13%</td><td class="num">0.74</td><td class="num">-33.9%</td></tr><tr><td class="num">2019-10 → 2022-10</td><td class="num">9.54%</td><td class="num">0.39</td><td class="num">-33.9%</td></tr><tr><td class="num">2020-10 → 2023-10</td><td class="num">6.78%</td><td class="num">0.38</td><td class="num">-25.4%</td></tr><tr><td class="num">2021-10 → 2024-10</td><td class="num">6.88%</td><td class="num">0.39</td><td class="num">-25.4%</td></tr></tbody>
+  </table>
+  </div>
+  <p>同样的十年，3 年窗口的夏普在 <b>0.38 ~ 0.80</b> 之间摆动，接近 2 倍差距。三个窗口里出现过的最大回撤完全相同（−33.9%，2020 年 3 月）——
+     说明这几段「差异化」主要是波动不同，而不是「赚钱能力」变了。</p>
+
+  <h3>日频还是月频？√T 法则的实测校验</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>频率</th><th class="num">年化无风险</th><th class="num">年化超额</th><th class="num">年化夏普</th></tr></thead>
+    <tbody>
+      <tr><td>日频（2,511 个交易日）</td><td class="num">2.44%</td><td class="num">12.22%</td><td class="num">0.68</td></tr>
+      <tr><td>月频（120 个月）</td><td class="num">2.44%</td><td class="num">11.78%</td><td class="num">0.77</td></tr>
+</tbody>
+  </table>
+  </div>
+  <p>同一段十年历史，日频算出 0.68、月频算出 0.77，差 0.09。差异来自采样方式（月末日 vs 全部交易日）与
+     无风险利率的折算方式，而不是「哪个月频更真实」。结论是：<b>同一份报告里不要混用频率</b>，
+     跨机构比较前先确认对方用的是日频还是月频。</p>
+</section>
+
+<section id="pitfalls">
+  <h2><span class="n">07</span>七个陷阱</h2>
+  <p class="sub">夏普是「一阶近似」，它的失效方式是可枚举的。</p>
+
+  <h3>陷阱 1｜同夏普 ≠ 同体验：它看不见回撤</h3>
+  <p>下面三条路径，用的都是同一组月度收益（+11%、+11%、+6%、−4%、−4%、−14% 的不同排列），
+     因此<b>均值、标准差、夏普完全相同（0.35）</b>，但最大回撤分别是 −14.0%、−17.4%、−20.7%。</p>
+  <figure class="fig">
+    <svg viewBox="0 0 640 322" role="img" aria-label="三个月度收益序列的平均值与标准差完全相同，夏普都是 0.35，但最大回撤分别是 14.0%、17.4%、20.7%"><text class="cap" x="52.0" y="15.0">净值（起点 100）　横轴：月</text><line class="gl" x1="52.0" y1="225.3" x2="620.0" y2="225.3"/><text class="ax" x="44.0" y="229.3">90</text><line class="gl" x1="52.0" y1="182.0" x2="620.0" y2="182.0"/><text class="ax" x="44.0" y="186.0">100</text><line class="gl" x1="52.0" y1="138.7" x2="620.0" y2="138.7"/><text class="ax" x="44.0" y="142.7">110</text><line class="gl" x1="52.0" y1="95.3" x2="620.0" y2="95.3"/><text class="ax" x="44.0" y="99.3">120</text><line class="gl" x1="52.0" y1="52.0" x2="620.0" y2="52.0"/><text class="ax" x="44.0" y="56.0">130</text><text class="ax mid" x="52.0" y="279.0">0</text><text class="ax mid" x="146.7" y="279.0">1</text><text class="ax mid" x="241.3" y="279.0">2</text><text class="ax mid" x="336.0" y="279.0">3</text><text class="ax mid" x="430.7" y="279.0">4</text><text class="ax mid" x="525.3" y="279.0">5</text><text class="ax mid" x="620.0" y="279.0">6</text><line class="axl" x1="52.0" y1="260.0" x2="52.0" y2="26.0"/><polyline class="ln3" points="52.0,182.0 146.7,242.7 241.3,220.1 336.0,236.2 430.7,194.6 525.3,211.0 620.0,166.8"/><polyline class="ln2" points="52.0,182.0 146.7,199.3 241.3,174.2 336.0,236.2 430.7,251.3 525.3,211.0 620.0,166.8"/><polyline class="ln1" points="52.0,182.0 146.7,134.3 241.3,81.5 336.0,49.4 430.7,71.9 525.3,93.6 620.0,166.8"/><line class="ln3" x1="98.0" y1="32.5" x2="124.0" y2="32.5"/><text class="lb l3" x="132.0" y="36.5">路径 A：最大回撤 14.0%</text><line class="ln2" x1="98.0" y1="50.7" x2="124.0" y2="50.7"/><text class="lb l2" x="132.0" y="54.7">路径 B：最大回撤 17.4%</text><line class="ln1" x1="98.0" y1="68.9" x2="124.0" y2="68.9"/><text class="lb l1" x="132.0" y="72.9">路径 C：最大回撤 20.7%</text><text class="cap" x="52.0" y="312.0">三条路径的月度收益集合完全相同（只是顺序不同）→ 均值、标准差、夏普都一样，只有回撤不同</text></svg>
+    <figcaption>三条线的月度收益集合完全一样（只是顺序不同）→ 夏普都是 0.35。<br>
+    但路径 C 先冲高再深跌，持有体验与路径 A 天差地别。夏普对「顺序」完全无感。</figcaption>
+  </figure>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>路径（月度收益 %）</th><th class="num">月均</th><th class="num">月波动</th><th class="num">最大回撤</th></tr></thead>
+    <tbody><tr><td>路径 A（开局先跌）</td><td class="num">-14 +6 -4 +11 -4 +11</td><td class="num">1.0%</td><td class="num">10.0%</td><td class="num">−14.0%</td></tr><tr><td>路径 B（中途挖坑）</td><td class="num">-4 +6 -14 -4 +11 +11</td><td class="num">1.0%</td><td class="num">10.0%</td><td class="num">−17.4%</td></tr><tr><td>路径 C（先冲高后深跌）</td><td class="num">+11 +11 +6 -4 -4 -14</td><td class="num">1.0%</td><td class="num">10.0%</td><td class="num">−20.7%</td></tr></tbody>
+  </table>
+  </div>
+
+  <h3>陷阱 2｜尾部风险：卖期权与庞氏型策略</h3>
+  <p>「每月稳定小赚、极低波动」是卖期权、做空波动率、以及庞氏骗局共同的表象。
+     维基百科在夏普比率条目里直接点名这两类例子：<b>它们在崩盘前的经验夏普极高</b>，因为标准差还没体现出风险。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>策略状态</th><th class="num">月均收益</th><th class="num">月波动</th><th class="num">年化夏普</th></tr></thead>
+    <tbody>
+      <tr><td>前 119 个月（未出事）</td><td class="num">0.60%</td><td class="num">0.16%</td><td class="num"><b>12.67</b></td></tr>
+      <tr><td>119 个月 + 第 120 个月的 −40%</td><td class="num">0.26%</td><td class="num">3.71%</td><td class="num"><b>0.24</b></td></tr>
+</tbody>
+  </table>
+  </div>
+  <p>119 个月的「完美记录」把年化夏普推到 12.67；加上第 120 个月的 −40% 之后，夏普掉到 0.24 —— 
+     而这时钱已经没了。所以读到「高夏普 + 低波动 + 收益稳得可疑」的组合时，第一个问题应该是「它卖的是什么保险」。</p>
+
+  <h3>陷阱 3｜负超额收益时，排序会骗人</h3>
+  <p>对两个都跑不过国债的策略，夏普的排序和「谁亏得多」是相反的。
+     因为负值除以更小的波动会得到更接近 0 的数，看起来「没那么差」：</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>策略</th><th class="num">年化夏普</th><th class="num">年化超额收益</th></tr></thead>
+    <tbody>
+      <tr><td>策略 A：月均超额 -1.00%，月波动 0.52%</td><td class="num">-6.63</td><td class="num">−12.00%</td></tr>
+      <tr><td>策略 B：月均超额 -2.00%，月波动 2.09%</td><td class="num">-3.32</td><td class="num">−24.00%</td></tr>
+</tbody>
+  </table>
+  </div>
+  <p>策略 B 的年化亏损是 A 的两倍，夏普却「更好」（−3.32 &gt; −6.63）。
+     所以<b>夏普为负时不要用它排序</b>，直接比较亏损幅度和最大回撤。</p>
+
+  <h3>陷阱 4｜窗口与频率决定结论</h3>
+  <p>第 06 节已经实测：同一指数的逐年夏普从 2.45 到 −0.89，3 年滚动窗口在 0.38~0.80 之间摆动。
+     看到任何夏普，先补齐三件事：<b>起止日期、数据频率、无风险利率口径</b>。缺一件就没法比较。</p>
+
+  <h3>陷阱 5｜分母的口径：无风险利率可以换掉结论</h3>
+  <p>分子减去什么，直接改变数值。同一个标普 500 十年窗口：</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>无风险利率口径</th><th class="num">十年夏普</th></tr></thead>
+    <tbody>
+      <tr><td>用 3 个月期国库券（本页口径，窗口均值 2.44%）</td><td class="num"><b>0.68</b></td></tr>
+      <tr><td>把无风险利率当成 0（「相对 0 的性价比」讨论常见）</td><td class="num">0.81</td></tr>
+      <tr><td>用 10 年期国债（窗口均值 2.91%）</td><td class="num">0.65</td></tr>
+</tbody>
+  </table>
+  </div>
+  <p>没有人「错」，但这三套口径不能混着比。本页统一用 3 个月期国库券，与大多数基金月报一致。</p>
+
+  <h3>陷阱 6｜只罚波动、不区分方向，也不看分布形状</h3>
+  <p>上涨 20% 与下跌 20% 对标准差贡献相同。这会系统性低估「长期上涨但偶尔剧烈」的资产，
+     以及偏爱「波动小但下跌频发」的资产。想只惩罚下行，用<b>索提诺比率</b>；想看极端损失，配合<b>最大回撤 / 卡玛比率 / CVaR</b>。</p>
+
+  <h3>陷阱 7｜把它当成未来预测</h3>
+  <p>夏普 1994 原文整篇的前提是：历史夏普与未来夏普之间「是否存在单调或比例关系」，本身需要另行论证
+     —— 原文只讨论了 ex ante 决策版本，把「历史值能不能预测未来」留给了其他文献。
+     实务上更稳妥的用法是<b>同口径横向比较</b>与<b>判断性价比是否改善</b>，而不是拿历史夏普乘以本金去推未来收益。</p>
+</section>
+
+<section id="others">
+  <h2><span class="n">08</span>与其他指标的分工</h2>
+  <p class="sub">每个风险调整指标都只是「换了一个分母」。表里右列是标普 500 的十年实测值。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>指标</th><th>公式</th><th>它在惩罚什么</th><th class="num">标普 500 十年</th></tr></thead>
+    <tbody><tr><td>夏普比率</td><td>超额收益 ÷ 全部波动</td><td>对称看待涨跌波动；只看前两个矩</td><td class="num">0.68</td></tr><tr><td>索提诺比率</td><td>超额收益 ÷ <b>下行</b>波动</td><td>只罚下跌波动，更贴近「怕亏」的直觉</td><td class="num">0.95</td></tr><tr><td>卡玛比率</td><td>年化收益 ÷ 最大回撤</td><td>以最难受的一次回撤为单位</td><td class="num">0.43</td></tr><tr><td>信息比率</td><td>超额收益 ÷ 跟踪误差（对标风险基准）</td><td>把「无风险利率」换成「基准」，夏普的推广</td><td class="num">—</td></tr><tr><td>特雷诺比率</td><td>超额收益 ÷ β（系统性风险）</td><td>只惩罚与市场同步的波动</td><td class="num">—</td></tr></tbody>
+  </table>
+  </div>
+  <p>读法：夏普 0.68、索提诺 0.95、卡玛 0.43。三个数差异这么大，是因为它们各自「讨厌」的东西不同：
+     索提诺只看下跌（本窗口上涨波动多，所以数值更高）；卡玛以那次 −33.9% 的回撤为单位，因此最低。
+     <b>报一个指标就等于选了一个立场</b>，专业做法是把收益、夏普、最大回撤三项一起给。</p>
+</section>
+
+<section id="glossary">
+  <h2><span class="n">09</span>术语表</h2>
+  <p class="sub">本页出现的每个术语，都在这里说清。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>术语</th><th>一句话定义</th><th>在本页的位置</th></tr></thead>
+    <tbody><tr><td><b>夏普比率</b></td><td>每承担一单位收益波动，能换来多少超额收益</td><td>本页主角；1966 年由威廉·夏普提出，1994 年他本人重新定义</td></tr><tr><td><b>无风险利率 R<sub>f</sub></b></td><td>几乎不承担风险就能拿到的收益率，实务上用短期国债收益率代替</td><td>分子里被减掉的那一项；它变了，夏普就变</td></tr><tr><td><b>超额收益</b></td><td>资产收益 − 无风险利率</td><td>分子：真正「靠承担风险挣来的」部分</td></tr><tr><td><b>标准差 σ</b></td><td>收益率围绕均值的离散程度，衡量波动</td><td>分母；在正态假设下等于风险</td></tr><tr><td><b>年化（√T 法则）</b></td><td>均值 × T、标准差 × √T（T 为一年内的期数）</td><td>日频 ×√252、月频 ×√12、季频 ×√2</td></tr><tr><td><b>t 统计量</b></td><td>夏普 × √期数，用来判断这个夏普是不是「真的」</td><td>t > 2 才算统计显著</td></tr><tr><td><b>最大回撤</b></td><td>从峰值到最低点的最大跌幅</td><td>夏普看不见的「体验」，要和它一起读</td></tr><tr><td><b>跟踪误差</b></td><td>相对基准的收益波动</td><td>信息比率的分母</td></tr><tr><td><b>β（贝塔）</b></td><td>收益对市场波动的敏感度</td><td>特雷诺比率的分母</td></tr></tbody>
+  </table>
+  </div>
+</section>
+
+<section id="sources">
+  <h2><span class="n">10</span>数据来源</h2>
+  <p class="sub">真实市场数字取自下列来源并现算；示例数字按页内公式现算，可复现。访问日期 2026-10-14。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>数据</th><th>来源</th></tr></thead>
+    <tbody><tr><td>夏普比率的定义（超额收益 ÷ 超额收益的标准差）、1966 年提出、1994 年作者本人重新定义 ex-ante / ex-post 两版、t 统计量 = 夏普 × √T、非正态分布下标准差不等于全部风险（庞氏与卖期权例子）、伯克希尔 1976–2017 夏普 0.79 对比美股 0.49</td><td>维基百科 <i>Sharpe ratio</i><br><a href="https://en.wikipedia.org/wiki/Sharpe_ratio">https://en.wikipedia.org/wiki/Sharpe_ratio</a></td></tr><tr><td>「我 25 年前提出这个指标时叫 reward-to-variability ratio」、ex ante 与 ex post 两式、方差-均值框架的适用边界、年化惯例（均值 ×T、标准差 ×√T）、「股票市场年超额 6%、标准差 15% → 夏普 0.40」的示例、t 统计量与夏普的关系、「夏普比率与你选择的度量期间不独立」</td><td>威廉·夏普《The Sharpe Ratio》，<i>Journal of Portfolio Management</i> 1994 年秋季号（作者本人网站上的重印版）<br><a href="https://web.stanford.edu/~wfsharpe/art/sr/sr.htm">https://web.stanford.edu/~wfsharpe/art/sr/sr.htm</a></td></tr><tr><td>标普 500 指数日收盘（2016-10-14 起，2512 个交易日）、纳斯达克综合指数、3 个月期国库券二级市场收益率（DTB3）——本页所有真实市场数字均由这三个序列现算</td><td>美国圣路易斯联储 FRED 数据库：<code>SP500</code> / <code>NASDAQCOM</code> / <code>DTB3</code><br><a href="https://fred.stlouisfed.org/series/SP500">https://fred.stlouisfed.org/series/SP500</a></td></tr><tr><td>夏普比率的经验刻度区间（0.5 / 1 / 2 / 3 的常规说法）与各指标的分工、伯克希尔 1976–2017 夏普 0.79 对比美股 0.49 的长期参照</td><td>维基百科 <i>Sharpe ratio</i>（长期参照数据）+ 行业惯例整理（刻度区间，非学术结论）；统计显著性门槛由 t 统计量公式自算<br><a href="https://en.wikipedia.org/wiki/Sharpe_ratio">https://en.wikipedia.org/wiki/Sharpe_ratio</a></td></tr><tr><td>索提诺比率、卡玛比率、信息比率、特雷诺比率的定义与各自分母</td><td>维基百科 <i>Sharpe ratio</i>「信息比率是夏普比率的推广」段 + 各指标通用定义<br><a href="https://en.wikipedia.org/wiki/Sharpe_ratio">https://en.wikipedia.org/wiki/Sharpe_ratio</a></td></tr><tr><td>除上述来源外的所有数字（手算示例、同夏普不同路径、卖期权型策略、负夏普排序、无风险利率口径敏感性）：按本页公式用 Python 现算，可复现</td><td>本页自算</td></tr></tbody>
+  </table>
+  </div>
+  <p class="sub">说明：本页为公开资料整理与自算示例，不构成投资建议；指数为价格指数，未含股息，若含股息各夏普会略高。历史业绩不代表未来。</p>
+</section>
+
+</main>
+
+<footer>
+  <p>本页自包含（无外部字体、脚本、图片依赖），数字均可按页内公式复算。</p>
+  <p>内容库：<a href="https://github.com/argsno/public-pages">github.com/argsno/public-pages</a></p>
+</footer>
+
+</div>
+</body>
+</html>
