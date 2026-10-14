@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CAGR 复合年均增长率 ｜ 把波动抹平成一个数字</title>
+<meta name="description" content="CAGR（复合年均增长率）深入浅出讲解：公式推导、手算与 Excel/Python 写法、与算术平均的区别、五个常见陷阱、波动拖累实测、72 法则速算、何时该换成 IRR。数据附来源。">
+<style>
+  :root{
+    --bg:#fbfaf8;--fg:#1c1b1a;--muted:#6b6862;--border:#e6e2db;--card:#fff;
+    --accent:#2b5c8a;--accent-soft:#eef2f7;--code:#f3f0eb;--ok:#2f6f4f;--warn:#9a6a12;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#141413;--fg:#eceae6;--muted:#9c988e;--border:#312f2c;--card:#1c1b1a;
+      --accent:#7fb2e0;--accent-soft:#1a222c;--code:#252422;--ok:#6fbf94;--warn:#d9ad57;}
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.78}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  .back{display:inline-block;margin:22px 0 0;font-size:13.5px}
+  header.hero{padding:14px 0 30px;border-bottom:1px solid var(--border)}
+  .kicker{font-size:13px;letter-spacing:.16em;color:var(--muted);margin:0 0 12px;text-transform:uppercase}
+  h1{font-size:clamp(32px,6.4vw,50px);line-height:1.12;margin:0;font-weight:700;letter-spacing:.01em}
+  h1 small{display:block;font-size:15px;font-weight:400;letter-spacing:0;color:var(--muted);margin-top:10px}
+  .lede{font-size:17px;color:var(--muted);margin:14px 0 0;max-width:62ch}
+  nav.toc{margin:20px 0 0;padding:14px 0 0;border-top:1px solid var(--border);font-size:14px;display:flex;gap:8px;flex-wrap:wrap}
+  nav.toc a{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px 12px;text-decoration:none;border-bottom:1px solid var(--border)}
+  main{padding:0 0 60px}
+  section{padding:40px 0 10px;border-top:1px solid var(--border)}
+  section:first-of-type{border-top:none;padding-top:26px}
+  h2{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px}
+  h3{font-size:16.5px;margin:26px 0 6px}
+  h4{font-size:15px;margin:20px 0 4px;color:var(--muted);font-weight:600}
+  p{margin:11px 0}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 16px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 32%,transparent);word-break:break-all}
+  a:hover{border-bottom-color:var(--accent)}
+  .tldr{background:var(--accent-soft);border:1px solid var(--border);border-left:3px solid var(--accent);
+        border-radius:var(--radius);padding:16px 22px;margin:20px 0 6px}
+  .tldr h3{margin:0 0 8px;font-size:15px;letter-spacing:.02em}
+  .tldr ul{margin:0;padding-left:20px}
+  .tldr li{margin:6px 0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:11px;margin:18px 0 6px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+  .card .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .card .v{font-size:20px;font-weight:700;margin:3px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .v.sm{font-size:16px;line-height:1.5}
+  .card .d{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .tblwrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:540px}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{background:color-mix(in srgb,var(--fg) 4%,var(--card));font-weight:600;font-size:13px;white-space:nowrap;letter-spacing:.02em}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+  td.num,th.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .up{color:var(--ok);font-weight:600}
+  .down{color:var(--accent);font-weight:600}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:.9em;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--code);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px 16px;overflow-x:auto;font-size:13.5px;line-height:1.65;margin:14px 0;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre .c{color:var(--muted)}
+  .quote{border-left:3px solid var(--border);padding:2px 0 2px 16px;margin:14px 0;color:var(--muted);font-size:15px}
+  .quote b{color:var(--fg)}
+  ul.tight{margin:10px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  .fig{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px 6px;margin:18px 0}
+  .fig svg{width:100%;height:auto;display:block}
+  .fig figcaption{font-size:12.5px;color:var(--muted);margin:6px 0 4px;line-height:1.6}
+  svg .gl{stroke:var(--border);stroke-width:1}
+  svg .axl{stroke:color-mix(in srgb,var(--fg) 26%,transparent);stroke-width:1.2}
+  svg .ln1{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linejoin:round}
+  svg .ln2{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:6 5;stroke-linejoin:round}
+  svg .dot{fill:var(--accent)}
+  svg .ax{fill:var(--muted);font-size:11px}
+  svg .ax.mid{text-anchor:middle}
+  svg .lb{font-size:12.5px;font-weight:600}
+  svg .l1{fill:var(--accent)}
+  svg .l2{fill:var(--muted)}
+  .formula{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+           padding:16px 18px;margin:16px 0;font-size:19px;text-align:center;
+           font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .note{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--warn);
+        border-radius:var(--radius);padding:12px 16px;margin:16px 0;font-size:14.5px}
+  .note b{color:var(--fg)}
+  .pill2{display:inline-block;font-size:11.5px;border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--muted);white-space:nowrap}
+  footer{border-top:1px solid var(--border);padding:24px 0 60px;color:var(--muted);font-size:13.5px}
+  footer p{margin:6px 0}
+  @media (max-width:640px){body{font-size:15.5px}.wrap{padding:0 16px}h2{font-size:20px}th,td{padding:8px 11px}
+    .formula{font-size:15.5px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="../">← 返回目录</a>
+
+<header class="hero">
+  <p class="kicker">金融指标解释 · 复利与收益率</p>
+  <h1>CAGR<small>复合年均增长率 · Compound Annual Growth Rate</small></h1>
+  <p class="lede">一句话：CAGR 是「假设每年都以同一个速度增长、最后正好到达终点」的那个速度。
+     它只需要首值、终值、年数三个数，所以既方便，也极易被误用 —— 本页把方便和误用都讲清。</p>
+
+  <nav class="toc">
+    <a href="#tldr">结论速览</a>
+    <a href="#intro">01 一句话理解</a>
+    <a href="#average">02 为什么不用算术平均</a>
+    <a href="#formula">03 公式怎么来的</a>
+    <a href="#how">04 怎么算</a>
+    <a href="#pitfalls">05 五个陷阱</a>
+    <a href="#intuition">06 复利直觉与速算</a>
+    <a href="#when">07 该用与不该用</a>
+    <a href="#glossary">08 术语表</a>
+    <a href="#sources">数据来源</a>
+  </nav>
+</header>
+
+<main>
+
+<section id="tldr">
+  <h2><span class="n">◎</span>结论速览</h2>
+
+  <div class="cards">
+    <div class="card">
+      <div class="k">公式（唯一的公式）</div>
+      <div class="v sm">(终值 ÷ 初值)<sup>1/年数</sup> − 1</div>
+      <div class="d">只用三个数：首值、终值、年数。中间怎么波动的，它完全不看。</div>
+    </div>
+    <div class="card">
+      <div class="k">最小例子</div>
+      <div class="v">12.47%</div>
+      <div class="d">100 元 5 年变成 180 元：(1.8)<sup>1/5</sup> − 1 = 12.47%/年</div>
+    </div>
+    <div class="card">
+      <div class="k">算术平均的陷阱</div>
+      <div class="v"><span class="down">−13.40%</span></div>
+      <div class="d">先 +50% 再 −50%：算术平均是 0%，实际只剩 75 元，真实年化 −13.40%</div>
+    </div>
+    <div class="card">
+      <div class="k">真实世界（SEC 备案）</div>
+      <div class="v">16.21%</div>
+      <div class="d">某成长股基金 10 年「平均年度总回报」（即 CAGR），同期标普 500 指数 13.99%</div>
+    </div>
+  </div>
+
+  <div class="tldr">
+    <h3>如果只记 6 件事</h3>
+    <ul>
+      <li><b>CAGR 是「反推出来的匀速」</b>：它不描述任何一年的真实收益，只描述「首尾之间的等效年速度」。听到「年化 20%」时，先问「起点、终点、几年」。</li>
+      <li><b>中间数据不参与计算</b>：这是它最大的便利（三个数就能概括十几年），也是最大的坑（大起大落与平稳上涨可以算出同一个 CAGR）。</li>
+      <li><b>它对首尾极其敏感</b>：同一个苹果公司营收，FY2015→FY2025 是 5.94%，FY2020→FY2025 是 8.68%，FY2022→FY2025 是 1.81%。换窗口＝换故事。</li>
+      <li><b>波动会吃掉收益</b>：算术平均每年 +8%、波动 20% 时，2 万条路径模拟出的 20 年平均年化只有 6.01%，比 8% 少了约 2 个百分点。</li>
+      <li><b>有钱进出就不要用它</b>：中途追加投资、分红取出、分期投入，CAGR 会给出互相矛盾的答案，正确指标是 IRR / XIRR。</li>
+      <li><b>无定义时别硬算</b>：起值为 0、正负号变化、跨度不足一年 —— 这些场合 CAGR 数学上不存在或没有意义。</li>
+    </ul>
+  </div>
+</section>
+
+<section id="intro">
+  <h2><span class="n">01</span>一句话理解 CAGR</h2>
+  <p class="sub">输入三个数、输出一个速度。理解它，只需要想清楚「等效」这两个字。</p>
+
+  <p>CAGR 的定义是：<b>把一段时间里的复合增长，平均成一个恒定的年增长率</b>。
+     维基百科的表述是「代表一段时间内、对复合增长取年化后的平均增长率」，并指出它的作用正是
+     <b>抹平周期性数值的波动</b>，让那些波动大到让算术平均失去意义的序列变得可比。</p>
+
+  <div class="quote">
+    <b>类比</b>：开车从 A 到 B，实际路况有上坡、下坡、堵车、超车。CAGR 相当于问：
+    「如果全程按 <b>固定一个速度</b> 开，需要多快才能在同样的时间到达 B？」<br>
+    这个速度不是你在任何时刻的真实车速 —— 但它能立刻让两条不同的路可比。
+  </div>
+
+  <h3>三个输入，一个输出</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>输入</th><th>含义</th><th>易错点</th></tr></thead>
+    <tbody>
+      <tr><td>初值 V₀</td><td>起点的值（金额、营收、用户数、指数点位）</td><td>必须与终值同口径：含不含分红、含不含费用、名义还是实际</td></tr>
+      <tr><td>终值 Vₙ</td><td>终点的值，同一个口径</td><td>终点是「年内某天」还是「年末」，会改变结论</td></tr>
+      <tr><td>年数 n</td><td>两个时间点之间隔了多少年，可以是小数</td><td>FY2015→FY2025 是 <b>10</b> 年，不是 11 年（相减，不是数点数）</td></tr>
+      <tr><td class="num">→ CAGR</td><td>等效恒定年增长率</td><td>它不代表任何一年的真实收益，也不代表未来</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="note">
+    <b>术语：复合增长（复利）</b>　每一期的增长是「在上期结果之上」发生的，而不是始终基于最初的本金。
+    100 元连涨 5 年 10%，不是 100+50=150，而是 100×1.1<sup>5</sup> ≈ 161.05。
+    CAGR 这个词里的 C（Compound，复合）就是这个意思 —— 它描述的是复利增长，不是单利。
+  </div>
+</section>
+
+<section id="average">
+  <h2><span class="n">02</span>为什么不用「算术平均」</h2>
+  <p class="sub">先看一个让人不舒服的例子，再决定该用哪个平均。</p>
+
+  <p>假设有一笔投资，5 年的收益分别是 <b>+30%、−10%、+20%、−25%、+15%</b>。
+     把 5 个数加起来除以 5，得到算术平均 <b>+6.00%</b>。但 100 元本金 5 年后实际只剩 <b>121.10 元</b>，
+     对应真实的年化只有 <b>3.90%</b>。差距 2.1 个百分点来自「涨跌不对称」。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">年份</th><th class="num">当年收益</th><th class="num">期末（起点 100）</th></tr></thead>
+    <tbody><tr><td class="num">第 1 年</td><td class="num">+30.00%</td><td class="num">130.00</td></tr><tr><td class="num">第 2 年</td><td class="num">-10.00%</td><td class="num">117.00</td></tr><tr><td class="num">第 3 年</td><td class="num">+20.00%</td><td class="num">140.40</td></tr><tr><td class="num">第 4 年</td><td class="num">-25.00%</td><td class="num">105.30</td></tr><tr><td class="num">第 5 年</td><td class="num">+15.00%</td><td class="num">121.10</td></tr></tbody>
+  </table>
+  </div>
+
+  <h3>同一个序列，四种「平均值」</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>算法</th><th class="num">结果</th><th>怎么算出来的</th><th>适合回答</th></tr></thead>
+    <tbody>
+      <tr><td>总收益率（累计）</td><td class="num">+21.10%</td><td>首尾直接相减，不年化</td><td>看「一共赚了多少」</td></tr>
+      <tr><td>算术平均年收益</td><td class="num">+6.00%</td><td>(30−10+20−25+15) ÷ 5</td><td>预期收益、单期平均</td></tr>
+      <tr><td>几何平均 = CAGR</td><td class="num">+3.90%</td><td>(121.10 ÷ 100)^(1/5) − 1</td><td>多年实际年化</td></tr>
+      <tr><td>对数收益均值</td><td class="num">+3.83%</td><td>ln 收益的平均，再取指数</td><td>统计建模、波动分析</td></tr>
+
+    </tbody>
+  </table>
+  </div>
+
+  <h3>为什么跌一半要涨一倍才回本</h3>
+  <p>因为收益率是乘法的。<code>×(1−50%)</code> 之后想回到原点，需要 <code>×2</code>。
+     这个不对称性是 CAGR 要比算术平均低、且低迷期格外难熬的根本原因。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">先跌这么多</th><th class="num">回本需要涨这么多</th></tr></thead>
+    <tbody><tr><td class="num">−10%</td><td class="num">+11.1%</td></tr><tr><td class="num">−20%</td><td class="num">+25.0%</td></tr><tr><td class="num">−30%</td><td class="num">+42.9%</td></tr><tr><td class="num">−50%</td><td class="num">+100.0%</td></tr><tr><td class="num">−75%</td><td class="num">+300.0%</td></tr><tr><td class="num">−90%</td><td class="num">+900.0%</td></tr></tbody>
+  </table>
+  </div>
+  <p>因此：<b>看多年实际表现 → 用 CAGR（几何平均）</b>；<b>估算单期期望收益、做风险统计 → 用算术平均</b>。
+     两者混用，是财务表述里最常见的错误之一。</p>
+</section>
+
+<section id="formula">
+  <h2><span class="n">03</span>公式怎么来的</h2>
+  <p class="sub">三步推导，本质是「把复利公式倒过来解」。</p>
+
+  <h4>第 1 步：写出复利公式</h4>
+  <p>如果每年都增长 r，n 年后的值就是初值乘 n 次 <code>(1+r)</code>：</p>
+  <div class="formula">Vₙ = V₀ × (1 + r)<sup>n</sup></div>
+
+  <h4>第 2 步：把 r 解出来</h4>
+  <p>两边除以 V₀，再开 n 次方（等价于取 <code>1/n</code> 次幂），最后减 1：</p>
+  <div class="formula">r = ( Vₙ ÷ V₀ )<sup>1/n</sup> − 1</div>
+  <p>开方这一步是关键：<b>它把「n 次连续相乘」还原成「一次相乘」</b>，
+     所以得到的 r 是「每年乘一次」的那个固定倍率对应的增长率。加 1 后的 <code>1+r</code> 又叫 <b>复合增长因子</b>。</p>
+
+  <h4>第 3 步：代进去算</h4>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>步骤</th><th class="num">数值</th></tr></thead>
+    <tbody>
+      <tr><td>初值 / 终值 / 年数</td><td class="num">100 / 180 / 5 年</td></tr>
+      <tr><td>终值 ÷ 初值（总倍率）</td><td class="num">1.8000</td></tr>
+      <tr><td>开 5 次方（复合增长因子）</td><td class="num">1.124746</td></tr>
+      <tr><td>减 1 → CAGR</td><td class="num"><b>12.4746%</b></td></tr>
+      <tr><td>反向验算：100 × 1.124746<sup>5</sup></td><td class="num">180.00 ✓</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>验证一下：按 CAGR 逐年复利，正好走到终点</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">期数</th><th class="num">期末值</th><th class="num">当年倍率</th></tr></thead>
+    <tbody><tr><td class="num">第 1 年</td><td class="num">112.47</td><td class="num">×1.1247</td></tr><tr><td class="num">第 2 年</td><td class="num">126.51</td><td class="num">×1.1247</td></tr><tr><td class="num">第 3 年</td><td class="num">142.29</td><td class="num">×1.1247</td></tr><tr><td class="num">第 4 年</td><td class="num">160.04</td><td class="num">×1.1247</td></tr><tr><td class="num">第 5 年</td><td class="num">180.00</td><td class="num">×1.1247</td></tr></tbody>
+  </table>
+  </div>
+  <p>这就是 CAGR 的完整含义：<b>不是真实路径，而是能复现首尾的匀速路径</b>。
+     年数也可以是小数：100 → 147 用 3.5 年，CAGR = (1.47)<sup>1/3.5</sup> − 1 = <b>11.64%</b>。</p>
+</section>
+
+<section id="how">
+  <h2><span class="n">04</span>怎么算（Excel / Python / 心算）</h2>
+  <p class="sub">三种工具，一个公式。注意 Excel 里那几个函数的参数含义容易记混。</p>
+
+<pre><span class="c"># Excel / Numbers（100 → 180，5 年）</span>
+=RRI(5, 100, 180)            <span class="c">→ 12.47%   nper, pv, fv（都用正数）</span>
+=(180/100)^(1/5)-1           <span class="c">→ 12.47%   最直观的写法</span>
+=POWER(180/100, 1/5)-1       <span class="c">→ 12.47%   等价写法</span>
+=RATE(5, 0, -100, 180)       <span class="c">→ 12.47%   注意 pv 要写负数</span>
+
+<span class="c"># Python</span>
+(180/100)**(1/5) - 1         <span class="c">→ 0.124746...</span>
+pow(180/100, 1/5) - 1
+
+<span class="c"># 命令行一句话（顺便用 72 法则估翻倍年数）</span>
+python3 -c "v0,vn,n=100,180,5; r=(vn/v0)**(1/n)-1; print(f'{r:.4%}', f'72 法则翻倍约 {72/(r*100):.1f} 年')"
+<span class="c">→ 12.4746% 72 法则翻倍约 5.8 年（精确值 5.90 年，见第 06 节）</span></pre>
+
+  <div class="note">
+    <b>两个易错参数</b>　1）<code>RRI</code> 的 <code>pv</code> 用正数，<code>RATE</code> 的 <code>pv</code> 必须写负数 ——
+    它们来自不同的现金流约定；2）年数要按「日期差 ÷ 365.25」或直接按会计年度相减，
+    别把「2015 到 2025」数成 11 年。用 Excel 时 <code>=YEARFRAC(起始日, 结束日)</code> 可以直接得到小数年数。
+  </div>
+
+  <h3>监管口径：美国基金披露的「平均年度总回报」就是 CAGR</h3>
+  <p>美国公募基金必须按 SEC 表 N-1A 的说明，披露 1 年、5 年、10 年的
+     <b>平均年度总回报（average annual total return）</b>：它是「假设初期投入 1,000 元、期末得到某赎回价值」反推出的
+     年均复合收益率，公式 P(1+T)<sup>n</sup> = ERV，解出 T 就是我们上面那个公式。来看一份真实备案：</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>布朗咨询成长股票基金（截至 2020-06-30）</th><th class="num">1 年</th><th class="num">5 年</th><th class="num">10 年</th></tr></thead>
+    <tbody><tr><td>机构份额（Institutional）</td><td class="num">22.88%</td><td class="num">16.17%</td><td class="num">16.21%</td></tr><tr><td>个人份额（Investor）</td><td class="num">22.70%</td><td class="num">16.00%</td><td class="num">16.04%</td></tr><tr><td>顾问份额（Advisor）</td><td class="num">22.39%</td><td class="num">15.71%</td><td class="num">15.73%</td></tr><tr><td>罗素 1000 成长指数</td><td class="num">23.28%</td><td class="num">15.89%</td><td class="num">17.23%</td></tr><tr><td>标普 500 指数</td><td class="num">7.51%</td><td class="num">10.73%</td><td class="num">13.99%</td></tr></tbody>
+  </table>
+  </div>
+  <p class="sub">数字取自 SEC EDGAR 备案的年报正文。同一份表格里，1 年、5 年、10 年三个窗口的数值就互不相同
+     ——这本身就是第 05 节第 4 个陷阱的官方示范。</p>
+</section>
+
+<section id="pitfalls">
+  <h2><span class="n">05</span>五个陷阱</h2>
+  <p class="sub">CAGR 用错，几乎都出在这五处。</p>
+
+  <h3>陷阱 1｜只看首尾，把痛苦抹掉了</h3>
+  <p>下面三条路径的起点都是 100、终点都是 121，年数都是 2 年。它们的 CAGR 完全一样（都是 <b>10.00%</b>），
+     但持有体验天差地别：第二条要经历腰斩式的浮亏，第三条要承受 −19% 的回撤。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>路径</th><th class="num">第 1 年</th><th class="num">第 2 年</th><th class="num">中间点（第 1 年末）</th></tr></thead>
+    <tbody><tr><td>平稳上涨</td><td class="num">10.00%</td><td class="num">10.00%</td><td>110.00 / 121.00</td></tr><tr><td>先跌后涨</td><td class="num">-20.00%</td><td class="num">51.25%</td><td>80.00 / 121.00</td></tr><tr><td>先涨后跌</td><td class="num">50.00%</td><td class="num">-19.33%</td><td>150.00 / 121.00</td></tr></tbody>
+  </table>
+  </div>
+  <p>结论：<b>CAGR 完全看不到波动</b>。要描述体验，得另外看年化波动率、最大回撤、水下时间。</p>
+
+  <h3 id="drag">陷阱 2｜波动会「吃掉」收益（波动拖累）</h3>
+  <p>同样的算术平均收益，波动越大，实际年化越低。下面用 2 万条随机路径模拟：
+     每条路径每年的算术平均收益都固定为 <b>+8%</b>，只改变波动幅度，跑 20 年后看平均年化。</p>
+  <figure class="fig">
+    <svg viewBox="0 0 640 235" role="img" aria-label="算术平均年收益都是 8%，波动率越高，实际年化越低"><line class="gl" x1="50.0" y1="201.0" x2="624.0" y2="201.0"/><text class="ax" x="42.0" y="205.0">0%</text><line class="gl" x1="50.0" y1="160.8" x2="624.0" y2="160.8"/><text class="ax" x="42.0" y="164.8">2%</text><line class="gl" x1="50.0" y1="120.6" x2="624.0" y2="120.6"/><text class="ax" x="42.0" y="124.6">4%</text><line class="gl" x1="50.0" y1="80.3" x2="624.0" y2="80.3"/><text class="ax" x="42.0" y="84.3">6%</text><line class="gl" x1="50.0" y1="40.1" x2="624.0" y2="40.1"/><text class="ax" x="42.0" y="44.1">8%</text><text class="ax mid" x="50.0" y="220.0">0%</text><text class="ax mid" x="145.7" y="220.0">5%</text><text class="ax mid" x="241.3" y="220.0">10%</text><text class="ax mid" x="337.0" y="220.0">15%</text><text class="ax mid" x="432.7" y="220.0">20%</text><text class="ax mid" x="528.3" y="220.0">25%</text><text class="ax mid" x="624.0" y="220.0">30%</text><line class="axl" x1="50.0" y1="201.0" x2="50.0" y2="20.0"/><polyline class="ln1" points="50.0,40.1 145.7,42.4 241.3,49.9 337.0,62.5 432.7,80.0 528.3,102.5 624.0,129.6"/><circle class="dot" cx="50.0" cy="40.1" r="3"/><circle class="dot" cx="145.7" cy="42.4" r="3"/><circle class="dot" cx="241.3" cy="49.9" r="3"/><circle class="dot" cx="337.0" cy="62.5" r="3"/><circle class="dot" cx="432.7" cy="80.0" r="3"/><circle class="dot" cx="528.3" cy="102.5" r="3"/><circle class="dot" cx="624.0" cy="129.6" r="3"/><text class="lb l1" x="470.9" y="80.4">实际年化 0.04%</text><text class="lb l2" x="59.6" y="28.1">起点：0.08%</text></svg>
+    <figcaption>横轴：年收益的波动（标准差）。纵轴：20 年后实际年化。起点 8.00%，波动 30% 时只剩 3.55%。
+    公式上的解释是近似式 <b>几何平均 ≈ 算术平均 − σ²/2</b>；下表右侧给出它和模拟值的对照。</figcaption>
+  </figure>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">年收益波动 σ</th><th class="num">20 年平均年化（模拟 2 万条路径）</th><th class="num">近似式 8% − σ²/2</th><th class="num">比 8% 少了</th></tr></thead>
+    <tbody><tr><td class="num">0%</td><td class="num">8.00%</td><td class="num">8.00%</td><td class="num">0.00%</td></tr><tr><td class="num">5%</td><td class="num">7.88%</td><td class="num">7.88%</td><td class="num">-0.12%</td></tr><tr><td class="num">10%</td><td class="num">7.51%</td><td class="num">7.50%</td><td class="num">-0.49%</td></tr><tr><td class="num">15%</td><td class="num">6.89%</td><td class="num">6.88%</td><td class="num">-1.11%</td></tr><tr><td class="num">20%</td><td class="num">6.01%</td><td class="num">6.00%</td><td class="num">-1.99%</td></tr><tr><td class="num">25%</td><td class="num">4.90%</td><td class="num">4.88%</td><td class="num">-3.10%</td></tr><tr><td class="num">30%</td><td class="num">3.55%</td><td class="num">3.50%</td><td class="num">-4.45%</td></tr></tbody>
+  </table>
+  </div>
+  <p>这就是「同样 +8% 的算术平均，一个稳、一个颠，长期结果差 4 个多百分点」的原因。
+     指数投资里常说的「低波动更省心」，量化依据就在这张表。</p>
+
+  <h3>陷阱 3｜有现金流进出，CAGR 立刻失真</h3>
+  <p>场景：第 0 年投入 100，第 1 年再投 100，第 4 年拿到 300。用 CAGR 怎么算？怎么算都不对：</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>口径</th><th class="num">结果</th><th>问题所在</th></tr></thead>
+    <tbody>
+      <tr><td>只用首笔 100 → 300，4 年</td><td class="num">31.61%</td><td>把第二笔 100 的投资也算成收益，虚高</td></tr>
+      <tr><td>把投入合计 200 → 300，3 年</td><td class="num">14.47%</td><td>把后投的钱当成第 0 年就投了，年数错位</td></tr>
+      <tr><td>正确的资金加权收益率 IRR</td><td class="num"><b>12.23%</b></td><td>同时考虑金额与时间，只有一个答案</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p>规则很简单：<b>期间没有资金进出（或有分红但全部再投资）→ 用 CAGR；有申购赎回、分期投入、部分取出 → 用 IRR / XIRR</b>。
+     基金定投的收益只能用 XIRR 算，用 CAGR 一定会算错。</p>
+
+  <h3>陷阱 4｜换个窗口，就是另一个故事</h3>
+  <p>以苹果公司财年营业收入为例（单位：百万美元）。同一家公司、同一段历史，窗口不同，年化差 5 倍以上：</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>窗口</th><th class="num">年数</th><th class="num">CAGR</th><th class="num">期间累计</th></tr></thead>
+    <tbody><tr><td>FY2015 → FY2025</td><td class="num">10 年</td><td class="num">5.94%</td><td class="num">78.1%</td></tr><tr><td>FY2016 → FY2025</td><td class="num">9 年</td><td class="num">7.58%</td><td class="num">93.0%</td></tr><tr><td>FY2019 → FY2025</td><td class="num">6 年</td><td class="num">8.14%</td><td class="num">60.0%</td></tr><tr><td>FY2020 → FY2025</td><td class="num">5 年</td><td class="num">8.68%</td><td class="num">51.6%</td></tr><tr><td>FY2022 → FY2025</td><td class="num">3 年</td><td class="num">1.81%</td><td class="num">5.5%</td></tr><tr><td>FY2023 → FY2025</td><td class="num">2 年</td><td class="num">4.20%</td><td class="num">8.6%</td></tr></tbody>
+  </table>
+  </div>
+  <p>看到「年化 X%」一定要问三件事：<b>从哪年开始、到哪年结束、口径是什么</b>。
+     短窗口的年化尤其危险 —— 3 年的数据年化出来，波动被放大成趋势。</p>
+
+  <h3>陷阱 5｜无定义、或没有意义的场合</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>情形</th><th>为什么不能算</th><th>改用</th></tr></thead>
+    <tbody>
+      <tr><td>初值为 0（从零起步的业务）</td><td>0 做分母，公式无定义；从 0 到 1 是无穷倍</td><td>绝对增量、或“哪一年转正”</td></tr>
+      <tr><td>初值与终值符号相反（−50 → +50）</td><td>比值为负，奇偶次方后无实意</td><td>绝对变化、转正时点</td></tr>
+      <tr><td>时间跨度不足 1 年</td><td>把季度或月度涨幅「年化」会放大噪声</td><td>直接给累计收益率，并注明区间</td></tr>
+      <tr><td>初值极小（如 1 → 100）</td><td>数学有定义，但年化数字会大到误导</td><td>说明绝对值与基数效应</td></tr>
+      <tr><td>把 CAGR 当未来预测</td><td>历史复合增速不保证延续，且它天然忽略波动</td><td>区间预测、情景分析</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="intuition">
+  <h2><span class="n">06</span>复利直觉与速算</h2>
+  <p class="sub">CAGR 的直觉就一个字：弯。线性增长是直线，复利增长是向上弯的曲线，时间越长弯得越明显。</p>
+
+  <figure class="fig">
+    <svg viewBox="0 0 640 250" role="img" aria-label="复利曲线与线性增长的差别：10 年 8%，复利终值 216，线性终值 180"><line class="gl" x1="46.0" y1="218.0" x2="626.0" y2="218.0"/><text class="ax" x="38.0" y="222.0">0</text><line class="gl" x1="46.0" y1="174.5" x2="626.0" y2="174.5"/><text class="ax" x="38.0" y="178.5">50</text><line class="gl" x1="46.0" y1="131.0" x2="626.0" y2="131.0"/><text class="ax" x="38.0" y="135.0">100</text><line class="gl" x1="46.0" y1="87.6" x2="626.0" y2="87.6"/><text class="ax" x="38.0" y="91.6">150</text><line class="gl" x1="46.0" y1="44.1" x2="626.0" y2="44.1"/><text class="ax" x="38.0" y="48.1">200</text><text class="ax mid" x="46.0" y="237.0">0 年</text><text class="ax mid" x="162.0" y="237.0">2 年</text><text class="ax mid" x="278.0" y="237.0">4 年</text><text class="ax mid" x="394.0" y="237.0">6 年</text><text class="ax mid" x="510.0" y="237.0">8 年</text><text class="ax mid" x="626.0" y="237.0">10 年</text><line class="axl" x1="46.0" y1="218.0" x2="46.0" y2="18.0"/><polyline class="ln2" points="46.0,131.0 104.0,124.1 162.0,117.1 220.0,110.2 278.0,103.2 336.0,96.3 394.0,89.3 452.0,82.3 510.0,75.4 568.0,68.4 626.0,61.5"/><polyline class="ln1" points="46.0,131.0 104.0,124.1 162.0,116.6 220.0,108.5 278.0,99.7 336.0,90.2 394.0,80.0 452.0,69.0 510.0,57.0 568.0,44.2 626.0,30.3"/><circle class="dot" cx="46.0" cy="131.0" r="2.7"/><circle class="dot" cx="104.0" cy="124.1" r="2.7"/><circle class="dot" cx="162.0" cy="116.6" r="2.7"/><circle class="dot" cx="220.0" cy="108.5" r="2.7"/><circle class="dot" cx="278.0" cy="99.7" r="2.7"/><circle class="dot" cx="336.0" cy="90.2" r="2.7"/><circle class="dot" cx="394.0" cy="80.0" r="2.7"/><circle class="dot" cx="452.0" cy="69.0" r="2.7"/><circle class="dot" cx="510.0" cy="57.0" r="2.7"/><circle class="dot" cx="568.0" cy="44.2" r="2.7"/><circle class="dot" cx="626.0" cy="30.3" r="2.7"/><text class="lb l1" x="452.0" y="56.0">复利 = 216</text><text class="lb l2" x="301.2" y="123.2">线性 = 132</text></svg>
+    <figcaption>起点都是 100，都是 10 年。虚线是「每年固定加 8 元」的线性增长，实线是「每年乘 1.08」的复利。
+    10 年后线性到 180，复利到 215.9 —— 差额全部来自「增长也参与增长」。</figcaption>
+  </figure>
+
+  <h3>72 法则：口算翻倍时间</h3>
+  <p>精确的翻倍年数是 <code>ln2 / ln(1+r)</code>。心算时用 <b>72 ÷ 年化百分数</b>：
+     整数倍好除、误差适中，所以 72 成了默认值（更精确的 69.3 适合连续复利，round 到 70 也行）。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">年化</th><th class="num">精确翻倍年数</th><th class="num">72 ÷ r</th><th class="num">69.3 ÷ r</th></tr></thead>
+    <tbody><tr><td class="num">1%</td><td class="num">69.66 年</td><td class="num">72.0 年</td><td class="num">69.30 年</td></tr><tr><td class="num">2%</td><td class="num">35.00 年</td><td class="num">36.0 年</td><td class="num">34.65 年</td></tr><tr><td class="num">5%</td><td class="num">14.21 年</td><td class="num">14.4 年</td><td class="num">13.86 年</td></tr><tr><td class="num">8%</td><td class="num">9.01 年</td><td class="num">9.0 年</td><td class="num">8.66 年</td></tr><tr><td class="num">10%</td><td class="num">7.27 年</td><td class="num">7.2 年</td><td class="num">6.93 年</td></tr><tr><td class="num">15%</td><td class="num">4.96 年</td><td class="num">4.8 年</td><td class="num">4.62 年</td></tr><tr><td class="num">20%</td><td class="num">3.80 年</td><td class="num">3.6 年</td><td class="num">3.46 年</td></tr><tr><td class="num">30%</td><td class="num">2.64 年</td><td class="num">2.4 年</td><td class="num">2.31 年</td></tr></tbody>
+  </table>
+  </div>
+  <p>注意低利率时 72 偏大（1% 时误差 2.3 年），高利率时 72 偏小（30% 时误差 0.24 年）——但用来判断量级足够了。
+     反过来用也行：<b>10 年翻倍 ≈ 年化 7.2%</b>。</p>
+
+  <h3>反算表：目标 → 需要的 CAGR</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>目标</th><th class="num">需要的年化</th></tr></thead>
+    <tbody>
+      <tr><td>5 年翻倍（2 倍）</td><td class="num">14.87%</td></tr>
+      <tr><td>10 年翻倍（2 倍）</td><td class="num">7.18%</td></tr>
+      <tr><td>10 年翻 3 倍</td><td class="num">11.61%</td></tr>
+      <tr><td>10 年增长 35%</td><td class="num">3.05%</td></tr>
+      <tr><td>20 年翻 10 倍</td><td class="num">12.20%</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="when">
+  <h2><span class="n">07</span>该用与不该用</h2>
+  <p class="sub">一句话判据：<b>口径一致、期间无资金进出、跨度足够长</b>——三条都满足才用 CAGR。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>场景</th><th>用什么</th><th>理由</th></tr></thead>
+    <tbody>
+      <tr><td>公司营收 / 用户数 / 门店数的多年变化</td><td><b>CAGR</b></td><td>首尾口径一致，没有中途「注资」问题（但要注明并购影响）</td></tr>
+      <tr><td>基金、指数、资产类别的多年业绩</td><td><b>CAGR</b>（含分红再投资、扣费后的口径）</td><td>监管要求披露的就是它，方便横向对比</td></tr>
+      <tr><td>宏观经济指标的多年变化</td><td><b>CAGR</b>（名义要注明是否扣通胀）</td><td>GDP、人口、出口额等的标准表述方式</td></tr>
+      <tr><td>定投、有申购赎回的个人账户</td><td>XIRR（资金加权）</td><td>每笔钱在场时间不同，CAGR 无法表达</td></tr>
+      <tr><td>要评估「持有体验」</td><td>年化波动率、最大回撤、夏普比率</td><td>CAGR 只看首尾，看不到过程</td></tr>
+      <tr><td>跨度不足一年、或数据点很少</td><td>累计收益率 + 区间说明</td><td>年化会把噪声放大成信号</td></tr>
+      <tr><td>起值为 0、或正负号变化</td><td>绝对变化量</td><td>CAGR 数学上无定义</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="note">
+    <b>组合用法（推荐）</b>　一个指标组合就能把「收益 + 过程」说清：
+    <b>CAGR</b>（赚了多少 / 年化多少）+ <b>年化波动率</b>（颠不颠）+ <b>最大回撤</b>（最难受时有多难受）+ <b>夏普比率</b>
+    （单位风险的收益）。只报 CAGR，等于只说了一半。
+  </div>
+</section>
+
+<section id="glossary">
+  <h2><span class="n">08</span>术语表</h2>
+  <p class="sub">本页出现的每个缩略语与指标，都先在这里说清。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>术语</th><th>一句话定义</th><th>和本页的关系</th></tr></thead>
+    <tbody>
+      <tr><td><b>CAGR</b> 复合年均增长率</td><td>使首值经过 n 年复利后到达终值的那个固定年增长率</td><td>本页主角</td></tr>
+      <tr><td><b>复利</b>（Compound）</td><td>每期增长以「上期结果」为基数，而非以最初本金为基数</td><td>CAGR 中 C 的含义</td></tr>
+      <tr><td><b>算术平均</b></td><td>把各期收益率相加再除以期数</td><td>不能代替 CAGR，见第 02 节</td></tr>
+      <tr><td><b>几何平均</b></td><td>各期增长因子 (<code>1+各期收益率</code>) 连乘后开 n 次方，再减 1</td><td>数值上就等于 CAGR，两者是一回事</td></tr>
+      <tr><td><b>累计收益率</b></td><td>终值 ÷ 初值 − 1，不年化</td><td>跨度太短或起值异常时用它</td></tr>
+      <tr><td><b>波动率 / 标准差 σ</b></td><td>收益率围绕均值的离散程度，年化后常用于衡量风险</td><td>决定「波动拖累」的大小</td></tr>
+      <tr><td><b>波动拖累</b></td><td>波动使几何平均（实际年化）低于算术平均的幅度，近似 σ²/2</td><td>第 05 节陷阱 2</td></tr>
+      <tr><td><b>IRR / XIRR</b></td><td>让所有现金流的净现值等于 0 的折现率，考虑金额与时间</td><td>有资金进出时的正确指标</td></tr>
+      <tr><td><b>对数收益率</b></td><td>ln(终值 ÷ 初值)，可跨期直接相加</td><td>统计建模、波动分析的基础</td></tr>
+      <tr><td><b>表 N-1A（SEC）</b></td><td>美国公募基金注册说明书的法定表格，规定业绩披露口径</td><td>「平均年度总回报」即 CAGR 的监管依据</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="sources">
+  <h2><span class="n">09</span>数据来源</h2>
+  <p class="sub">引用数据取自下列条目；示例数字按本页公式现算，可复现。访问日期 2026-10-14。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>数据</th><th>来源</th></tr></thead>
+    <tbody><tr><td>CAGR 的定义、公式、Excel <code>RRI</code> 用法、「抹平波动」的表述、常见应用场景</td><td>维基百科 <i>Compound annual growth rate</i><br><a href="https://en.wikipedia.org/wiki/Compound_annual_growth_rate">https://en.wikipedia.org/wiki/Compound_annual_growth_rate</a></td></tr><tr><td>「平均年度总回报」= 几何平均年化，公式 P(1+T)<sup>n</sup> = ERV；美国公募基金须按 SEC 表 N-1A 披露 1/5/10 年数值</td><td>维基百科 <i>Rate of return</i>「Average annual total return (geometric)」段<br><a href="https://en.wikipedia.org/wiki/Rate_of_return">https://en.wikipedia.org/wiki/Rate_of_return</a></td></tr><tr><td>SEC 表 N-1A 原文（基金注册说明书表格，规定平均年度总回报的计算口径）</td><td>美国证券交易委员会（SEC）<br><a href="https://www.sec.gov/files/formn-1a.pdf">https://www.sec.gov/files/formn-1a.pdf</a></td></tr><tr><td>基金 1/5/10 年平均年度总回报 22.88% / 16.17% / 16.21%，标普 500 指数同期 7.51% / 10.73% / 13.99%（截至 2020-06-30）</td><td>SEC EDGAR 备案：布朗咨询基金（Brown Advisory Funds）N-CSR 年度报告<br><a href="https://www.sec.gov/Archives/edgar/data/1548609/000089853120000395/baf-ncsra.htm">https://www.sec.gov/Archives/edgar/data/1548609/000089853120000395/baf-ncsra.htm</a></td></tr><tr><td>苹果公司 FY2015–FY2025 营业收入（233,715 → 416,161 百万美元），本页 CAGR 由此计算</td><td>SEC XBRL company-concept API（<code>us-gaap:RevenueFromContractWithCustomer...</code> / <code>Revenues</code> / <code>SalesRevenueNet</code>）<br><a href="https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json">https://data.sec.gov/api/xbrl/companyconcept/CIK0000320193/us-gaap/RevenueFromContractWithCustomerExcludingAssessedTax.json</a></td></tr><tr><td>72 法则：精确值 ln2 / ln(1+r)，近似值 72/r 与 69.3/r 的适用差别</td><td>维基百科 <i>Rule of 72</i><br><a href="https://en.wikipedia.org/wiki/Rule_of_72">https://en.wikipedia.org/wiki/Rule_of_72</a></td></tr><tr><td>除上述来源外的所有数字（本页示例、波动拖累、现金流 IRR、各种换算）：按本页公式用 Python <code>math</code> 现算；波动拖累为 2 万条对数正态随机路径模拟（年化取路径均值，算术平均收益固定 8%，20 年）</td><td>本页自算（可复现）</td></tr></tbody>
+  </table>
+  </div>
+  <p class="sub">说明：本页为公开资料整理与自算示例，不构成投资建议。基金历史业绩不代表未来。</p>
+</section>
+
+</main>
+
+<footer>
+  <p>本页自包含（无外部字体、脚本、图片依赖），数字均可按页内公式复算。</p>
+  <p>内容库：<a href="https://github.com/argsno/public-pages">github.com/argsno/public-pages</a></p>
+</footer>
+
+</div>
+</body>
+</html>
