@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>平成时代 1989–2019 ｜ 日本第 125 代天皇在位期</title>
+<meta name="description" content="平成（1989-01-08 — 2019-04-30）全解：年号由来、四个十年分期、日经225 三十年曲线、阪神与东日本大震灾、55 年体制终结与政权更替、少子高龄化。数据附来源。">
+<style>
+  :root{
+    --bg:#fbfaf8;--fg:#1c1b1a;--muted:#6b6862;--border:#e6e2db;--card:#fff;
+    --accent:#b3292f;--accent-soft:#f8eded;--code:#f3f0eb;--ok:#2f6f4f;--bubble:#c8892a;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#141413;--fg:#eceae6;--muted:#9c988e;--border:#312f2c;--card:#1c1b1a;
+      --accent:#e2847f;--accent-soft:#2b1c1c;--code:#252422;--ok:#6fbf94;--bubble:#d9ad57;}
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.78;}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  .back{display:inline-block;margin:22px 0 0;font-size:13.5px}
+  header.hero{padding:14px 0 30px;border-bottom:1px solid var(--border)}
+  .kicker{font-size:13px;letter-spacing:.16em;color:var(--muted);margin:0 0 12px;text-transform:uppercase}
+  .era{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;margin:0 0 6px}
+  h1{font-size:clamp(34px,7vw,54px);line-height:1.1;margin:0;font-weight:700;letter-spacing:.02em}
+  h1 small{display:block;font-size:15px;font-weight:400;letter-spacing:0;color:var(--muted);margin-top:10px}
+  .lede{font-size:17px;color:var(--muted);margin:14px 0 0;max-width:60ch}
+  nav.toc{margin:20px 0 0;padding:14px 0 0;border-top:1px solid var(--border);font-size:14px;display:flex;gap:8px;flex-wrap:wrap}
+  nav.toc a{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px 12px;text-decoration:none;border-bottom:1px solid var(--border)}
+  main{padding:0 0 64px}
+  section{padding:40px 0 10px;border-top:1px solid var(--border)}
+  section:first-of-type{border-top:none;padding-top:28px}
+  h2{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px}
+  h3{font-size:16.5px;margin:26px 0 6px}
+  p{margin:11px 0}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 16px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 32%,transparent)}
+  a:hover{border-bottom-color:var(--accent)}
+  .tldr{background:var(--accent-soft);border:1px solid var(--border);border-left:3px solid var(--accent);
+        border-radius:var(--radius);padding:16px 22px;margin:20px 0 6px}
+  .tldr h3{margin:0 0 8px;font-size:15px;letter-spacing:.02em}
+  .tldr ul{margin:0;padding-left:20px}
+  .tldr li{margin:6px 0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(168px,1fr));gap:11px;margin:18px 0 6px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+  .card .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .card .v{font-size:21px;font-weight:700;margin:3px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .d{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .tblwrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:540px}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{background:color-mix(in srgb,var(--fg) 4%,var(--card));font-weight:600;font-size:13px;white-space:nowrap;letter-spacing:.02em}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+  td.num,th.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  .up{color:var(--ok);font-weight:600}
+  .down{color:var(--accent);font-weight:600}
+  .tag{display:inline-block;font-size:11.5px;border:1px solid var(--border);border-radius:5px;padding:1px 6px;color:var(--muted);white-space:nowrap}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:.9em;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .quote{border-left:3px solid var(--border);padding:2px 0 2px 16px;margin:14px 0;color:var(--muted);font-size:15px}
+  .quote b{color:var(--fg)}
+  ul.tight{margin:10px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  .spark{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px;margin:16px 0;font-size:12.5px;color:var(--muted)}
+  .spark div{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:9px 11px}
+  .spark b{display:block;color:var(--fg);font-size:15px;font-variant-numeric:tabular-nums}
+  footer{border-top:1px solid var(--border);padding:24px 0 64px;color:var(--muted);font-size:13.5px}
+  footer p{margin:6px 0}
+  @media (max-width:640px){body{font-size:15.5px}.wrap{padding:0 16px}h2{font-size:20px}th,td{padding:8px 11px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="../">← 返回目录</a>
+
+<header class="hero">
+  <p class="kicker">日本近现代史 · 年号解读</p>
+  <div class="era">
+    <h1>平成<small>1989 年 1 月 8 日 — 2019 年 4 月 30 日 ｜ 共 11,070 天</small></h1>
+  </div>
+  <p class="lede">明仁（第 125 代天皇）在位期，日本战后最长的一轮「低增长 + 通缩 + 人口转折」。
+     它始于泡沫经济的最高点，终于震灾、核事故与人口减少的既成事实。</p>
+
+  <nav class="toc">
+    <a href="#tldr">结论速览</a>
+    <a href="#name">01 年号</a>
+    <a href="#decades">02 四个十年</a>
+    <a href="#econ">03 经济</a>
+    <a href="#disaster">04 灾害与危机</a>
+    <a href="#politics">05 政治</a>
+    <a href="#society">06 社会与人口</a>
+    <a href="#compare">07 三朝对照</a>
+    <a href="#sources">来源</a>
+  </nav>
+</header>
+
+<main>
+
+<section id="tldr">
+  <h2><span class="n">◎</span>结论速览</h2>
+  <div class="tldr">
+    <h3>如果只记 6 件事</h3>
+    <ul>
+      <li><b>顺序上它很特殊</b>：平成是日本史上第 4 长的年号（11,070 天）。更特殊的是它<b>以「生前退位」结束</b>——上一次伴随退位的改元是 1817 年（光格天皇 → 仁孝天皇），隔了 202 年。</li>
+      <li><b>经济上是「顶点 → 长期停滞」的完整故事</b>：日经 225 在 1989 年 12 月 29 日创下 38,957.44 的盘中高点，这个纪录<b>保持了 34 年以上</b>，直到 2024 年 2 月才被超越。平成末年（2019 年末）收在 23,656.62，仍比 30 年前低约 39%。</li>
+      <li><b>中途最低点腰斩再腰斩</b>：2008 年 10 月 28 日盘中跌到 6,994.90，较高点 <span class="down">−82%</span>。</li>
+      <li><b>两次大震灾定义了时代情绪</b>：1995 年阪神·淡路大震灾（6,434 人死亡）与 2011 年东日本大震灾（Mw9.0，死亡·失踪 22,332 人，含震灾相关死亡，并引发福岛第一核电站事故）。</li>
+      <li><b>政治上是「体制终结 + 走马灯」</b>：1993 年 55 年体制终结；平成 31 年间共 17 代、16 位首相先后就任；2009 年实现了战后第二次真正的政权更替。</li>
+      <li><b>人口在这 30 年里由增转减</b>：2008 年总人口 1 亿 2,808 万见顶，此后进入人口减少社会；日本也从联合国的「高龄化社会」走到「超高龄社会」。</li>
+    </ul>
+  </div>
+
+  <div class="cards">
+    <div class="card"><div class="k">在位天数</div><div class="v">11,070</div><div class="d">天 ｜ 日本元号长度第 4 位</div></div>
+    <div class="card"><div class="k">日经225 高点</div><div class="v">38,957</div><div class="d">1989-12-29 盘中，记录保持 34 年</div></div>
+    <div class="card"><div class="k">日经225 低点</div><div class="v">6,994</div><div class="d">2008-10-28 盘中，−82%</div></div>
+    <div class="card"><div class="k">就任首相</div><div class="v">16 人</div><div class="d">17 代内阁（1989–2019.4）</div></div>
+    <div class="card"><div class="k">总人口峰值</div><div class="v">1.28 亿</div><div class="d">2008 年，此后转为减少</div></div>
+    <div class="card"><div class="k">消费税</div><div class="v">3 → 8%</div><div class="d">1989 / 1997 / 2014 三度上调</div></div>
+  </div>
+</section>
+
+<section id="name">
+  <h2><span class="n">01</span>年号：诞生与终结</h2>
+  <p class="sub">名字来自中国典籍，终结方式在法律史上也是首例。</p>
+
+  <h3>改元时间线</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>日期</th><th>事件</th><th>备注</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1989-01-07 06:33</td><td>昭和天皇崩御，明仁<b>随即即位</b>（第 125 代）</td><td>即位当日即公布改元政令（昭和六十四年政令第一号）</td></tr>
+      <tr><td class="num">1989-01-07</td><td>内阁官房长官<b>小渕恵三</b>公布新元号「平成」</td><td>沿用昭和改元时「先由官房长官公布」的先例</td></tr>
+      <tr><td class="num">1989-01-08 00:00</td><td>改元政令施行，<b>平成开始</b></td><td>昭和共 62 年 14 天</td></tr>
+      <tr><td class="num">2016 夏</td><td>天皇发表「象征天皇职责」视频讲话</td><td>为生前退位铺路的公开信号</td></tr>
+      <tr><td class="num">2017-12</td><td>皇室会议 + 内阁决议，确定 2019 年 4 月退位</td><td>以退位特例法为依据</td></tr>
+      <tr><td class="num">2019-04-01 11:41</td><td>官房长官<b>菅義偉</b>公布新年号「令和」</td><td>12:05 首相安倍晋三发表谈话</td></tr>
+      <tr><td class="num">2019-04-30 17:00</td><td>「退位礼正殿之仪」，平成最后一天</td><td>明仁天皇作为天皇的最后一项公务</td></tr>
+      <tr><td class="num">2019-05-01 00:00</td><td>天皇退位、<b>德仁</b>即位（第 126 代），改元<b>令和</b></td><td>平成共 11,070 天（30 年 113 天）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>「平成」的典籍出处</h3>
+  <p>两处汉籍取字，语义是「国内的安定与海外的成就，天地皆平」——即治理内外、天地都达到和平。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>出处</th><th>原文</th><th>取字</th></tr></thead>
+    <tbody>
+      <tr><td>《史记·五帝本纪》帝舜</td><td>「內平外成」</td><td><b>平</b>、<b>成</b></td></tr>
+      <tr><td>《尚书》（伪古文尚书）·大禹谟</td><td>「地平天成」</td><td>平、成</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <div class="quote">
+    <p>附带的事实：「成」字在日本年号中是<b>首次</b>出现。1865 年「庆应」改元时，候选方案里已经有过「平成」，出处同样是《尚书·大禹谟》。当时也有汉学家提出异议——引《春秋左氏传》更稳妥，且伪古文尚书本身可信度不足。</p>
+  </div>
+
+  <h3>长度排名</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">位次</th><th>年号</th><th class="num">长度</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>昭和</td><td class="num">62 年 14 天</td></tr>
+      <tr><td class="num">2</td><td>明治</td><td class="num">43 年 281 天</td></tr>
+      <tr><td class="num">3</td><td>应永</td><td class="num">33 年 313 天</td></tr>
+      <tr><td class="num">4</td><td><b>平成</b></td><td class="num">30 年 113 天</td></tr>
+      <tr><td class="num">5</td><td>延历</td><td class="num">23 年 251 天</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="decades">
+  <h2><span class="n">02</span>四个十年：平成怎么切的</h2>
+  <p class="sub">按元号纪年切分（而非西历整十年），这样每一段内部的因果更连贯。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>分期</th><th>西历</th><th>关键词</th><th>标志性事件</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>平成元年–9 年</b></td>
+        <td class="num">1989–1997</td>
+        <td>泡沫顶点 → 崩坏；55 年体制终结</td>
+        <td>1991 泡沫经济崩坏；1993 非自民·非共产联合政权成立；1995-01-17 阪神·淡路大震灾；1995-03-20 地铁沙林事件；1997 消费税 3%→5%、山一证券自主废业</td>
+      </tr>
+      <tr>
+        <td><b>平成 10 年代</b></td>
+        <td class="num">1998–2007</td>
+        <td>亚洲金融危机、自公联合、小泉结构改革</td>
+        <td>1998 亚洲通货危机 + 负增长；自公联合政权开始；2001 小泉内阁「无圣域结构改革」；2002 日韩世界杯；2007 次贷问题爆发</td>
+      </tr>
+      <tr>
+        <td><b>平成 20 年代</b></td>
+        <td class="num">2008–2017</td>
+        <td>世界同时不况、震灾与核事故、政权更替</td>
+        <td>2008 雷曼冲击；2009-08 众院选自民党下野、民主党内阁成立；2011-03-11 东日本大震灾 + 福岛第一核电站事故；2012-12 政权复归、第 2 次安倍内阁「安倍经济学」；2013 东京 2020 奥运申办成功；2016 天皇视频讲话</td>
+      </tr>
+      <tr>
+        <td><b>平成 30 年代</b></td>
+        <td class="num">2018–2019.4</td>
+        <td>走向终焉</td>
+        <td>2019-04-01 公布「令和」；2019-04-30 退位，平成结束</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="econ">
+  <h2><span class="n">03</span>经济：一条维持了 34 年的高点</h2>
+  <p class="sub">平成经济的主线不是「衰退」，而是<b>「没有回到起点」</b>。</p>
+
+  <div class="spark">
+    <div>1989 年末收盘<b>38,915.87</b>日经225</div>
+    <div>2008 年盘中最低<b>6,994.90</b>较高点 −82%</div>
+    <div>2019 年末收盘<b>23,656.62</b>较 1989 年 −39%</div>
+    <div>高点保持时长<b>34 年+</b>2024-02 才被超越</div>
+  </div>
+
+  <h3>日经 225 关键节点</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>日期</th><th class="num">点位</th><th>说明</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1989-12-29 09:04</td><td class="num"><b>38,957.44</b></td><td>盘中最高点（历史纪录，34 年以上未被打破）</td></tr>
+      <tr><td class="num">1989-12-29</td><td class="num">38,915.87</td><td>当年收盘价</td></tr>
+      <tr><td class="num">1990-10-01</td><td class="num">跌破 20,000</td><td>距高点仅 9 个月，泡沫崩坏开始</td></tr>
+      <tr><td class="num">2008-10-28 10:17</td><td class="num"><b>6,994.90</b></td><td>雷曼冲击后的盘中最低</td></tr>
+      <tr><td class="num">2009-03-10</td><td class="num">7,054.98</td><td>收盘最低</td></tr>
+      <tr><td class="num">2019-12-30</td><td class="num">23,656.62</td><td>2019 年末收盘（平成结束后约 8 个月）</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>「平成不况」的三段</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>阶段</th><th>期间</th><th>诱因</th></tr></thead>
+    <tbody>
+      <tr><td><b>第 1 次</b>（泡沫崩坏 / 复合不况）</td><td class="num">1991-03 — 1993-10</td><td>资产价格崩塌、内需收缩、通缩开始</td></tr>
+      <tr><td><b>第 2 次</b>（日本列岛总不况）</td><td class="num">1997 — 1999</td><td>消费税上调、亚洲通货危机、大型金融机构接连破产</td></tr>
+      <tr><td><b>第 3 次</b>（IT 泡沫崩坏 / 通缩不况）</td><td class="num">2000-12 — 2002-01</td><td>IT 泡沫破裂，转入长期通缩</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="sub">狭义的「平成不况」指第 1 次；广义则把 1991-03 至 2002-01 视为一整段（其中夹着短暂回升，如 1993-11—1997-05 的「カンフル景气 / 第二次平成景气」、1999-02—2000-11 的「IT 景气」）。此后是 2002-02—2008-02 的「いざなみ景气」（战后最长扩张期），却被评价为「无实感的增长」，随后被次贷危机打断。</p>
+
+  <h3>税制与汇率</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>项目</th><th>平成期内变化</th></tr></thead>
+    <tbody>
+      <tr><td>消费税</td><td>3%（1989-04-01 导入）→ 5%（1997-04-01）→ 8%（2014-04-01）。10% 的再度上调发生在令和期（2019-10-01）</td></tr>
+      <tr><td>日元汇率</td><td>平成初期 1 美元 ≈ 120–160 日元 → 1990 年代中期升破 100 → 2011 年前后一度到 <b>75 日元台</b>（日元战后最强）→ 2013–2015 安倍经济学下回落至 120 日元台</td></tr>
+      <tr><td>外部象征</td><td>1989 年三菱地所以<b>约 2,200 亿日元</b>收购纽约洛克菲勒中心——平成元年的日本购买力写照</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="disaster">
+  <h2><span class="n">04</span>灾害与危机：两次震灾，一个时代情绪</h2>
+  <p class="sub">这两次灾害不是插曲，它们直接改写了平成后半段的政策议程（防灾、能源、财政）。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>事件</th><th>时间</th><th>规模</th><th class="num">死亡</th><th class="num">失踪</th><th>影响</th></tr></thead>
+    <tbody>
+      <tr>
+        <td><b>阪神·淡路大震灾</b><br><span class="tag">1.17</span></td>
+        <td class="num">1995-01-17 05:46</td>
+        <td>M 7.3（兵库县南部地震）</td>
+        <td class="num">6,434</td>
+        <td class="num">3</td>
+        <td>负伤 43,792 人；当时战后最严重的自然灾害，直到东日本大震灾。<b>暴露了初期救灾与自卫队派遣机制的缺陷</b>，成为后来灾害应对改革的起点。</td>
+      </tr>
+      <tr>
+        <td><b>东日本大震灾</b><br><span class="tag">3.11</span></td>
+        <td class="num">2011-03-11 14:46</td>
+        <td>Mw 9.0（东北地方太平洋冲地震）</td>
+        <td class="num">19,787</td>
+        <td class="num">2,549</td>
+        <td>负伤 6,254 人；含震灾相关死亡，12 都道府县合计<b>死亡·失踪 22,332 人</b>。引发<b>福岛第一核电站事故</b>，全国核电站停机与节电。明治以降日本震灾中，仅次于关东大震灾、明治三陆地震。</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+
+  <ul class="tight">
+    <li><b>1995-03-20 地铁沙林事件</b>：奥姆真理教在东京地铁施放沙林，与同年震灾叠加，造成「1995 年」在日本社会记忆中的特殊位置。</li>
+    <li><b>2008 世界同时不况</b>：以美国次贷问题为起点，经雷曼冲击扩散，日本股市在 2008-10 探底。</li>
+    <li><b>2017 起朝鲜导弹试验常态化</b>：多枚导弹落入日本近海，成为平成末年最直接的安全议题。</li>
+  </ul>
+</section>
+
+<section id="politics">
+  <h2><span class="n">05</span>政治：55 年体制终结，然后是走马灯</h2>
+  <p class="sub">平成 31 年，17 代内阁、16 位首相。前半段是体制解体，后半段是轮替频繁化。</p>
+
+  <h3>政权更替的四个阶段</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>阶段</th><th>期间</th><th>内容</th></tr></thead>
+    <tbody>
+      <tr><td>自民党单独政权</td><td class="num">— 1993</td><td>55 年体制（自民 vs 社会）的尾声</td></tr>
+      <tr><td>非自民·非共产联合政权</td><td class="num">1993-08 — 1994-04</td><td>细川护熙内阁；<b>55 年体制终结</b>，1994 年通过政治改革四法（引入小选区比例代表并立制）</td></tr>
+      <tr><td>自社さ联合 → 自自公 → 自公</td><td class="num">1994-06 — 2009-09</td><td>村山内阁开启自社さ联合；1998 年起自公联合成为常态；2001–2006 小泉长期政权</td></tr>
+      <tr><td>民主党政权 → 自公复归</td><td class="num">2009-09 — 2019</td><td>2009-08-30 众院选自民党下野，民社国联合 → 民国联合；2012-12 再次政权更替，自公复归，第 2 次安倍内阁持续至平成结束</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h3>平成期内就任的首相（16 人 / 17 代）</h3>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th class="num">#</th><th>首相</th><th>就任</th><th>政权特征</th></tr></thead>
+    <tbody>
+      <tr><td class="num">1</td><td>宇野宗佑</td><td class="num">1989-06</td><td>平成元年接任</td></tr>
+      <tr><td class="num">2</td><td>海部俊樹</td><td class="num">1989-08</td><td>海湾战争期的「支票外交」批评</td></tr>
+      <tr><td class="num">3</td><td>宮澤喜一</td><td class="num">1991-11</td><td>泡沫崩坏、政治改革推进期</td></tr>
+      <tr><td class="num">4</td><td>細川護熙</td><td class="num">1993-08</td><td>非自民联合政权，55 年体制终结</td></tr>
+      <tr><td class="num">5</td><td>羽田孜</td><td class="num">1994-04</td><td>少数派政权，短命</td></tr>
+      <tr><td class="num">6</td><td>村山富市</td><td class="num">1994-06</td><td>自社さ联合；1995 年「村山谈话」</td></tr>
+      <tr><td class="num">7</td><td>橋本龍太郎</td><td class="num">1996-01</td><td>消费税升至 5%、金融机构破产潮</td></tr>
+      <tr><td class="num">8</td><td>小渕恵三</td><td class="num">1998-07</td><td>自公联合开始；1989 年公布「平成」的官房长官</td></tr>
+      <tr><td class="num">9</td><td>森喜朗</td><td class="num">2000-04</td><td>IT 泡沫破裂</td></tr>
+      <tr><td class="num">10</td><td>小泉純一郎</td><td class="num">2001-04</td><td>「无圣域结构改革」、邮政解散；いざなみ景气</td></tr>
+      <tr><td class="num">11</td><td>安倍晋三（第 1 次）</td><td class="num">2006-09</td><td>短命，一年后辞职</td></tr>
+      <tr><td class="num">12</td><td>福田康夫</td><td class="num">2007-09</td><td>次贷问题爆发期</td></tr>
+      <tr><td class="num">13</td><td>麻生太郎</td><td class="num">2008-09</td><td>雷曼冲击</td></tr>
+      <tr><td class="num">14</td><td>鳩山由紀夫</td><td class="num">2009-09</td><td>政权更替，民社国联合政权</td></tr>
+      <tr><td class="num">15</td><td>菅直人</td><td class="num">2010-06</td><td>东日本大震灾与核事故应对</td></tr>
+      <tr><td class="num">16</td><td>野田佳彦</td><td class="num">2011-09</td><td>消费税增税法案</td></tr>
+      <tr><td class="num">17</td><td>安倍晋三（第 2 次）</td><td class="num">2012-12</td><td>安倍经济学、2020 东京奥运、安全保障法制、マイナンバー</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="sub">注：平成开始（1989-01-08）时在任的是竹下登内阁，因其 1987 年上任、不属平成期内就任，未计入上表。</p>
+</section>
+
+<section id="society">
+  <h2><span class="n">06</span>社会与人口：从「增」到「减」的转折</h2>
+  <p class="sub">平成最重要的一条长线，是人口趋势的翻转。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>指标</th><th>平成期内的变化</th></tr></thead>
+    <tbody>
+      <tr><td>总人口</td><td><b>2008 年 1 亿 2,808 万见顶</b>，此后进入人口减少社会（此前长期增长）</td></tr>
+      <tr><td>劳动年龄人口</td><td>1998 年 6,793 万见顶；2005 年已降至 6,650 万</td></tr>
+      <tr><td>出生数</td><td>2005 年<b>首次跌破 110 万</b>；同期合计特殊出生率降至 1.26（当时统计史上最低），此后常年低位</td></tr>
+      <tr><td>高龄化</td><td>平成初日本处于联合国定义的「高龄化社会」（高龄化率 7–14%），平成末年已进入「<b>超高龄社会</b>」（21% 以上）；2020 年高龄化率 28.7%</td></tr>
+      <tr><td>就业结构</td><td>终身雇用与年功序列松动；「就业冰河期」（1990 年代中后期）与 2000 年代末的「派遣清零」使非正规雇用成为社会议题</td></tr>
+      <tr><td>对外</td><td>中国取代美国成为日本最大贸易伙伴；2010 年代入境游（インバウンド）消费成为增长亮点；2013 年获得 2020 年奥运主办权</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <div class="quote">
+    <p><b>为什么「失去的十年」后来被叫成「失去的二十年 / 三十年」？</b>因为 1990 年代的十年结束时，日本并没有完成资产负债表修复与增长动能切换；此后又叠加了 1997 年增税、2008 年全球金融危机、2011 年震灾与核事故，以及不可逆的人口拐点。所以它不是一个十年的故事，而是三个。</p>
+  </div>
+</section>
+
+<section id="compare">
+  <h2><span class="n">07</span>三朝对照：昭和 / 平成 / 令和</h2>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th></th><th>昭和</th><th>平成</th><th>令和</th></tr></thead>
+    <tbody>
+      <tr><td>期间</td><td class="num">1926-12-25 — 1989-01-07</td><td class="num">1989-01-08 — 2019-04-30</td><td class="num">2019-05-01 —</td></tr>
+      <tr><td>天数</td><td class="num">22,660</td><td class="num">11,070</td><td class="num">进行中</td></tr>
+      <tr><td>天皇</td><td>裕仁（第 124 代）</td><td>明仁（第 125 代）</td><td>德仁（第 126 代）</td></tr>
+      <tr><td>改元原因</td><td>前任天皇崩御</td><td><b>生前退位</b>（时隔 202 年）</td><td>前任天皇退位</td></tr>
+      <tr><td>时代关键词</td><td>战争 → 复兴 → 高速增长</td><td>泡沫顶点 → 长期通缩 → 人口减少</td><td>人口减少常态化、物价与利率环境转向</td></tr>
+      <tr><td>日经 225</td><td>起步 → 泡沫顶点</td><td>顶点 → −82% → 未回到起点</td><td>2024 年超越平成高点</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="sources">
+  <h2><span class="n">08</span>数据来源</h2>
+  <p class="sub">全部数字取自下列条目；日期一律用西历，括注元号纪年以便对照。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>数据</th><th>来源</th></tr></thead>
+    <tbody>
+      <tr><td>平成期间 11,070 天、年号长度排名、典拠、四个十年分期、政治与政策脉络、円相場</td><td>日文维基百科「平成」</td></tr>
+      <tr><td>日经 225 历年纪录（38,957.44 / 38,915.87 / 6,994.90 / 7,054.98 / 2019 年末收盘）</td><td>日文维基百科「日経平均株価」</td></tr>
+      <tr><td>平成不况三段分期与景气循环年份</td><td>日文维基百科「平成不況」</td></tr>
+      <tr><td>阪神·淡路大震灾：M7.3、死亡 6,434、失踪 3、负伤 43,792</td><td>日文维基百科「阪神・淡路大震災」</td></tr>
+      <tr><td>东日本大震灾：Mw9.0、死亡 19,787、失踪 2,549、负伤 6,254、死亡·失踪合计 22,332</td><td>日文维基百科「東日本大震災」</td></tr>
+      <tr><td>总人口 2008 年 1 亿 2,808 万见顶、劳动年龄人口 1998 年 6,793 万、出生数与合计特殊出生率</td><td>日文维基百科「日本の人口統計」</td></tr>
+      <tr><td>高龄化率的三档定义（7% / 14% / 21%）与 2020 年 28.7%</td><td>日文维基百科「少子高齢化」</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="sub">说明：本页为公开资料整理，不含任何非公开信息。数字若与官方统计（总务省统计局、厚生劳动省、内阁府）有出入，以官方原始统计为准。</p>
+</section>
+
+</main>
+
+<footer>
+  <p>更新：2026-10-14 ｜ 内容库：<a href="https://github.com/argsno/public-pages">github.com/argsno/public-pages</a></p>
+  <p><a href="../">← 返回目录</a></p>
+</footer>
+
+</div>
+</body>
+</html>

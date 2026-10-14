@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>平成时代 1989–2019 ｜ 公开 HTML 内容库</title>
+<style>
+  :root{
+    --bg:#fbfaf8;--fg:#1c1b1a;--muted:#6b6862;--border:#e6e2db;--card:#fff;
+    --accent:#b3292f;--accent-soft:#f8eded;--code:#f3f0eb;--ok:#2f6f4f;--warn:#9a6a12;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#141413;--fg:#eceae6;--muted:#9c988e;--border:#312f2c;--card:#1c1b1a;
+      --accent:#e2847f;--accent-soft:#2b1c1c;--code:#252422;--ok:#6fbf94;--warn:#d9ad57;}
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.75;
+  }
+  .wrap{max-width:1040px;margin:0 auto;padding:0 20px}
+  header.hero{padding:56px 0 32px;border-bottom:1px solid var(--border)}
+  .kicker{font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin:0 0 10px}
+  h1{font-size:clamp(28px,4.6vw,42px);line-height:1.25;margin:0 0 12px;font-weight:700;letter-spacing:-.01em}
+  .lede{font-size:17px;color:var(--muted);margin:0;max-width:62ch}
+  .stamp{display:inline-flex;gap:10px;align-items:center;margin-top:18px;font-size:13px;color:var(--muted);flex-wrap:wrap}
+  .pill{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:3px 11px}
+  main{padding:8px 0 72px}
+  section{padding:38px 0 8px;border-top:1px solid var(--border)}
+  section:first-of-type{border-top:none}
+  h2{font-size:22px;margin:0 0 6px;letter-spacing:-.01em}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px;font-weight:700}
+  h3{font-size:16px;margin:26px 0 8px;color:var(--fg)}
+  p{margin:10px 0}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 18px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+  a:hover{border-bottom-color:var(--accent)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin:16px 0 6px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+  .card .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .card .v{font-size:22px;font-weight:700;margin:4px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .d{font-size:13px;color:var(--muted);line-height:1.55}
+  .tldr{background:var(--accent-soft);border:1px solid var(--border);border-left:3px solid var(--accent);
+        border-radius:var(--radius);padding:16px 20px;margin:18px 0 8px}
+  .tldr h3{margin:0 0 8px;font-size:15px}
+  .tldr ul{margin:0;padding-left:20px}
+  .tldr li{margin:5px 0}
+  .tblwrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{background:color-mix(in srgb,var(--fg) 4%,var(--card));font-weight:600;font-size:13px;letter-spacing:.02em;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+  td.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  .up{color:var(--ok);font-weight:600}
+  .down{color:var(--accent);font-weight:600}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:.9em;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  .quote{border-left:3px solid var(--border);padding:2px 0 2px 16px;margin:14px 0;color:var(--muted);font-size:15px}
+  .quote b{color:var(--fg)}
+  footer{border-top:1px solid var(--border);padding:26px 0 60px;color:var(--muted);font-size:13.5px}
+  footer p{margin:6px 0}
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px}
+  ul.tight{margin:10px 0;padding-left:20px}
+  ul.tight li{margin:4px 0}
+  @media (max-width:640px){body{font-size:15.5px}.wrap{padding:0 16px}th,td{padding:8px 10px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="hero">
+  <p class="kicker">公开 HTML 内容库</p>
+  <h1>公开页面目录</h1>
+  <p class="lede">这个仓库专门存放可以公开的网页内容（解释页、报告、可视化等），发布在 GitHub Pages 上。
+     仓库内容全部公开可读，<b>不放任何私密信息</b>——不放凭据、密钥、内部链接、个人数据、未公开的业务信息。</p>
+  <div class="stamp">
+    <span class="pill">仓库 <a href="https://github.com/argsno/public-pages">argsno/public-pages</a></span>
+    <span class="pill">站点 <code>https://argsno.github.io/public-pages/</code></span>
+  </div>
+</header>
+
+<main>
+
+<section>
+  <h2><span class="n">01</span>页面列表</h2>
+  <p class="sub">按添加时间倒序。每个页面对应仓库里的一个子目录，<code>目录名/index.html</code>。</p>
+
+  <div class="tblwrap">
+  <table>
+    <thead>
+      <tr><th>页面</th><th>主题</th><th>一句话</th><th>更新</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><a href="./heisei/">平成时代 1989–2019</a></td>
+        <td>日本近现代史</td>
+        <td>日本第 125 代天皇明仁在位期：从泡沫顶点到长期通缩、从人口见顶到「失去的三十年」。</td>
+        <td class="num">2026-10-14</td>
+      </tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">02</span>这个仓库怎么用</h2>
+  <div class="grid2">
+    <div>
+      <h3>结构约定</h3>
+      <ul class="tight">
+        <li><code>index.html</code> — 本目录页</li>
+        <li><code>&lt;主题&gt;/index.html</code> — 单篇内容页，自包含（CSS/JS 内联，不依赖外部 CDN）</li>
+        <li><code>assets/</code> — 需要跨页复用的图片等静态资源</li>
+        <li><code>.nojekyll</code> — 关闭 Jekyll 处理，避免下划线开头的文件被忽略</li>
+      </ul>
+    </div>
+    <div>
+      <h3>发布方式</h3>
+      <ul class="tight">
+        <li>GitHub Pages，从 <code>main</code> 分支根目录构建</li>
+        <li>推送后约 1 分钟自动生效</li>
+        <li>默认地址 <code>/&lt;目录名&gt;/</code>，适合直接分享链接</li>
+        <li>页面应自适应手机宽度，首屏先给结论</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="n">03</span>内容红线</h2>
+  <p>往这里写之前先过一遍：以下内容<b>不</b>进这个仓库。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>类别</th><th>例子</th><th>替代做法</th></tr></thead>
+    <tbody>
+      <tr><td>凭据</td><td>API key、token、密码、私钥、连接串</td><td>只写变量名与获取方式</td></tr>
+      <tr><td>个人信息</td><td>真实姓名+联系方式对应、地址、身份证号、家属信息</td><td>脱敏或泛化描述</td></tr>
+      <tr><td>内部资料</td><td>未公开的合同、财务、路线图、内网地址</td><td>留在私有渠道</td></tr>
+      <tr><td>第三方受限内容</td><td>付费墙正文全文、未授权图片/字体</td><td>引用 + 链接到来源</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <p>本站内容为公开整理，引用数据以文末所列来源为准。</p>
+  <p>内容库：<a href="https://github.com/argsno/public-pages">github.com/argsno/public-pages</a></p>
+</footer>
+
+</div>
+</body>
+</html>
