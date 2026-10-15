@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SQLite FTS5 ｜全文索引的设计与实现（源码级解剖 + 本机实测）</title>
+<meta name="description" content="SQLite FTS5 深入浅出：影子表与 %_data 字节格式（结构记录/段页/文档列表/位置列表/变长整数）、写入路径与内存哈希、LSM 式分段合并策略、查询计划与短语验证、bm25 公式与手算对账、detail/prefix/contentless/trigram 的体积与能力取舍、中文分词的坑。全部数字由本机 SQLite 3.53.4 实测生成，附复现方法。">
+<style>
+  :root{
+    --bg:#fbfaf8;--fg:#1c1b1a;--muted:#6b6862;--border:#e6e2db;--card:#fff;
+    --accent:#2b5f9e;--accent-soft:#eef3fa;--code:#f3f0eb;--ok:#2f6f4f;--warn:#9a6a12;--alt:#8a5a2b;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#141413;--fg:#eceae6;--muted:#9c988e;--border:#312f2c;--card:#1c1b1a;
+      --accent:#7fb2f0;--accent-soft:#161f2b;--code:#252422;--ok:#6fbf94;--warn:#d9ad57;--alt:#d9a05b;}
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.78}
+  .wrap{max-width:880px;margin:0 auto;padding:0 20px}
+  .back{display:inline-block;margin:22px 0 0;font-size:13.5px}
+  header.hero{padding:14px 0 30px;border-bottom:1px solid var(--border)}
+  .kicker{font-size:13px;letter-spacing:.16em;color:var(--muted);margin:0 0 12px;text-transform:uppercase}
+  h1{font-size:clamp(30px,6vw,48px);line-height:1.12;margin:0;font-weight:700;letter-spacing:.01em}
+  h1 small{display:block;font-size:15px;font-weight:400;letter-spacing:0;color:var(--muted);margin-top:10px}
+  .lede{font-size:17px;color:var(--muted);margin:14px 0 0;max-width:64ch}
+  nav.toc{margin:20px 0 0;padding:14px 0 0;border-top:1px solid var(--border);font-size:14px;display:flex;gap:8px;flex-wrap:wrap}
+  nav.toc a{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px 12px;text-decoration:none}
+  main{padding:0 0 60px}
+  section{padding:40px 0 10px;border-top:1px solid var(--border)}
+  section:first-of-type{border-top:none;padding-top:26px}
+  h2{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px}
+  h3{font-size:16.5px;margin:26px 0 6px}
+  h4{font-size:15px;margin:20px 0 4px;color:var(--muted);font-weight:600}
+  p{margin:11px 0}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 16px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 32%,transparent);word-break:break-all}
+  a:hover{border-bottom-color:var(--accent)}
+  .tldr{background:var(--accent-soft);border:1px solid var(--border);border-left:3px solid var(--accent);
+        border-radius:var(--radius);padding:16px 22px;margin:20px 0 6px}
+  .tldr h3{margin:0 0 8px;font-size:15px;letter-spacing:.02em}
+  .tldr ul{margin:0;padding-left:20px}
+  .tldr li{margin:6px 0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(178px,1fr));gap:11px;margin:18px 0 6px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+  .card .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .card .v{font-size:20px;font-weight:700;margin:3px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .d{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .tblwrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:540px}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{background:color-mix(in srgb,var(--fg) 4%,var(--card));font-weight:600;font-size:13px;white-space:nowrap;letter-spacing:.02em}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+  td.num,th.num{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:.9em;
+       font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre{background:var(--code);border:1px solid var(--border);border-radius:var(--radius);
+      padding:14px 16px;overflow-x:auto;font-size:13px;line-height:1.65;margin:14px 0;
+      font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  pre .c{color:var(--muted)}
+  .quote{border-left:3px solid var(--border);padding:2px 0 2px 16px;margin:14px 0;color:var(--muted);font-size:15px}
+  .quote b{color:var(--fg)}
+  ul.tight{margin:10px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  ol.tight{margin:10px 0;padding-left:22px}
+  ol.tight li{margin:6px 0}
+  .fig{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px 6px;margin:18px 0}
+  .fig svg{width:100%;height:auto;display:block}
+  .fig figcaption{font-size:12.5px;color:var(--muted);margin:6px 0 4px;line-height:1.6}
+  svg .gl{stroke:color-mix(in srgb,var(--fg) 15%,transparent);stroke-width:1}
+  svg .axl{stroke:color-mix(in srgb,var(--fg) 30%,transparent);stroke-width:1.2}
+  svg .ln1{fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linejoin:round}
+  svg .ln2{fill:none;stroke:var(--alt);stroke-width:2;stroke-dasharray:6 5;stroke-linejoin:round}
+  svg .ln3{fill:none;stroke:var(--muted);stroke-width:2;stroke-dasharray:2 4;stroke-linejoin:round}
+  svg .ax{fill:var(--muted);font-size:11px}
+  svg .ax.mid{text-anchor:middle}
+  svg .cap{fill:var(--muted);font-size:11px}
+  svg .cap.mid{text-anchor:middle}
+  svg .lb{font-size:11.5px;font-weight:600}
+  svg .lb.mid{text-anchor:middle}
+  svg .l1{fill:var(--accent)}
+  svg .l2{fill:var(--alt)}
+  svg .l3{fill:var(--muted)}
+  .formula{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);
+           padding:16px 18px;margin:16px 0;font-size:14px;overflow-x:auto;
+           font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre}
+  .note{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--warn);
+        border-radius:var(--radius);padding:12px 16px;margin:16px 0;font-size:14.5px}
+  .note b{color:var(--fg)}
+  footer{border-top:1px solid var(--border);padding:24px 0 60px;color:var(--muted);font-size:13.5px}
+  footer p{margin:6px 0}
+  @media (max-width:640px){body{font-size:15.5px}.wrap{padding:0 16px}h2{font-size:20px}th,td{padding:8px 11px}
+    .formula{font-size:12px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<a class="back" href="../">← 返回目录</a>
+
+<header class="hero">
+  <p class="kicker">数据库内核解剖 · 全文索引</p>
+  <h1>SQLite FTS5<small>全文索引的设计与实现 · 源码级解剖 + 本机实测</small></h1>
+  <p class="lede">FTS5 是把一台<b>段式倒排索引引擎</b>塞进单个 <code>.db</code> 文件的插件：写入先在内存里攒词、提交时排序落成一个不可修改的段，查询时用「竞赛树」把多个段归并成一条有序结果流，空闲时再按 LSM 式策略把段吃掉。本页把它的字节格式、合并策略、查询计划和分词器全部拆开，每个数字都由本机 SQLite 3.53.4 实测得出。</p>
+
+  <div class="cards">
+<div class="card"><div class="k">段式索引</div><div class="v">5 段</div><div class="d">一次事务写入 4,000 篇后自动落成 0 层 4 段 + 1 层 1 段；optimize 后并成 1 个 645 页的大段</div></div>
+<div class="card"><div class="k">批处理提速</div><div class="v">218×</div><div class="d">同样 4,000 篇：单事务 0.092 s，逐条提交 20.10 s</div></div>
+<div class="card"><div class="k">索引体积</div><div class="v">2.49 MB</div><div class="d">默认 detail=full；正文 3.28 MB、文件合计 6.39 MB</div></div>
+<div class="card"><div class="k">砍位置信息</div><div class="v">25%</div><div class="d">detail=none 只剩 0.62 MB，但短语/NEAR 查询不可用</div></div>
+<div class="card"><div class="k">短前缀加速</div><div class="v">5.7×</div><div class="d">2 字符前缀查询 0.941 → 0.165 ms</div></div>
+<div class="card"><div class="k">对比全表扫描</div><div class="v">35×</div><div class="d"><code>LIKE '%ship%'</code> 4.900 ms vs <code>MATCH 'ship'</code> 0.140 ms（同一 5,778 篇语料）</div></div>
+<div class="card"><div class="k">中文检索</div><div class="v">trigram</div><div class="d">unicode61 把 CJK 连成一个词元；要按子串查中文得换 trigram，索引涨到 3.7 倍</div></div>
+<div class="card"><div class="k">bm25 对账</div><div class="v">118/118</div><div class="d">位置解码与 <code>fts5vocab</code> 逐条一致；bm25 手算与 SQLite 输出逐位一致</div></div>
+  </div>
+
+  <div class="tldr" id="tldr">
+    <h3>结论速览</h3>
+    <ul>
+      <li><b>结构</b>：一张虚拟表 + 5 张影子表；<code>%_data</code> 里装着全部倒排索引，它的 rowid 把「段 id / 页号」编进一个整数。</li>
+      <li><b>格式</b>：段叶页 = 4 字节页头 + 词条/文档列表 + 页尾偏移表；行号做差值编码，词条做前缀压缩，页尾偏移做增量压缩，全是 SQLite 变长整数。</li>
+      <li><b>写入</b>：一个事务在内存哈希里攒词，提交时排序落成新段——所以<b>批量提交比分条提交快 200 倍以上</b>（实测 0.092 s vs 20.10 s）。</li>
+      <li><b>查询</b>：每个词元一个迭代器，所有段并行归并，用<b>擂台树</b>取最小行号；短语靠位置列表验证相邻性，前缀查询按字符长度挑前缀索引。</li>
+      <li><b>打分</b>：内置 bm25（<code>k1=1.2, b=0.75</code>），返回负分；本页手算结果与 SQLite 输出逐位一致，<code>IDF ≤ 0</code> 时被钳到 <code>1e-6</code>。</li>
+      <li><b>取舍</b>：位置信息值 4 倍索引体积；前缀索引值 2.4 倍体积换短前缀提速；中文默认分词是坑，要用 <code>trigram</code>。</li>
+    </ul>
+  </div>
+
+  <nav class="toc">
+<a href="#problem">01 解决的问题</a>
+<a href="#glossary">02 术语表</a>
+<a href="#storage">03 存储全貌</a>
+<a href="#write">04 写入路径</a>
+<a href="#bytes">05 字节解剖</a>
+<a href="#query">06 查询路径</a>
+<a href="#merge">07 合并策略</a>
+<a href="#space">08 空间取舍</a>
+<a href="#cjk">09 分词与中文</a>
+<a href="#practice">10 实战清单</a>
+<a href="#sources">11 数据来源</a>
+  </nav>
+</header>
+
+<main>
+
+<section id="problem">
+  <h2><span class="n">01</span>它解决什么问题</h2>
+  <p class="sub">用 <code>LIKE '%词%'</code> 找文本要读全表；FTS5 用「词元→文档」的反查表把这件事变成一次索引跳读。</p>
+<figure class="fig"><svg viewBox="0 0 720 170" role="img" aria-label="写入路径"><title>一次 INSERT 的写入路径</title><rect x="24.0" y="46.0" width="112.0" height="66.0" class="l1" rx="6" opacity="0.14"/><text class="lb mid" x="80.0" y="64.0" text-anchor="middle">分词</text><text class="cap mid" x="80.0" y="79.0" text-anchor="middle">unicode61：</text><text class="cap mid" x="80.0" y="91.0" text-anchor="middle">连续字母/数字</text><text class="cap mid" x="80.0" y="103.0" text-anchor="middle">→一个词元</text><line class="axl" x1="139.0" y1="79.0" x2="155.0" y2="79.0"/><text class="ax mid" x="149.0" y="83.0" text-anchor="middle">→</text><rect x="158.0" y="46.0" width="112.0" height="66.0" class="l1" rx="6" opacity="0.14"/><text class="lb mid" x="214.0" y="64.0" text-anchor="middle">内存哈希</text><text class="cap mid" x="214.0" y="79.0" text-anchor="middle">默认 1 MB</text><text class="cap mid" x="214.0" y="91.0" text-anchor="middle">hashsize 可调</text><text class="cap mid" x="214.0" y="103.0" text-anchor="middle">行号递增才留</text><line class="axl" x1="273.0" y1="79.0" x2="289.0" y2="79.0"/><text class="ax mid" x="283.0" y="83.0" text-anchor="middle">→</text><rect x="292.0" y="46.0" width="112.0" height="66.0" class="l1" rx="6" opacity="0.14"/><text class="lb mid" x="348.0" y="64.0" text-anchor="middle">刷成 0 层段</text><text class="cap mid" x="348.0" y="79.0" text-anchor="middle">提交时排序落盘</text><text class="cap mid" x="348.0" y="91.0" text-anchor="middle">段不可修改</text><text class="cap mid" x="348.0" y="103.0" text-anchor="middle">1 事务≥ 1 段</text><line class="axl" x1="407.0" y1="79.0" x2="423.0" y2="79.0"/><text class="ax mid" x="417.0" y="83.0" text-anchor="middle">→</text><rect x="426.0" y="46.0" width="112.0" height="66.0" class="l1" rx="6" opacity="0.14"/><text class="lb mid" x="482.0" y="64.0" text-anchor="middle">增量合并</text><text class="cap mid" x="482.0" y="79.0" text-anchor="middle">automerge=4</text><text class="cap mid" x="482.0" y="91.0" text-anchor="middle">crisismerge=16</text><text class="cap mid" x="482.0" y="103.0" text-anchor="middle">按写页数配额</text><line class="axl" x1="541.0" y1="79.0" x2="557.0" y2="79.0"/><text class="ax mid" x="551.0" y="83.0" text-anchor="middle">→</text><rect x="560.0" y="46.0" width="112.0" height="66.0" class="l1" rx="6" opacity="0.14"/><text class="lb mid" x="616.0" y="64.0" text-anchor="middle">查询</text><text class="cap mid" x="616.0" y="79.0" text-anchor="middle">所有段并行归并</text><text class="cap mid" x="616.0" y="91.0" text-anchor="middle">竞赛树选最小行号</text><text class="cap" x="24.0" y="136.0">写入只在结尾追加新段（append-only）；删除不重写段，而是往最新段写一条带删除标记的记录。</text><text class="cap" x="24.0" y="154.0">查询时才把各段按行号归并成一条有序流——写便宜、读要多花一点合并成本，这是整个设计的取舍。</text></svg></figure>
+  <p>代价交换得很清楚：<b>写入时多维护一份索引，换取查询时不用读正文</b>。下面是三种「找文本」的方式在同一份语料（5,778 篇、3.30 MB 正文）上的实测：</p>
+<div class="tblwrap"><table>
+<thead><tr><th></th><th>怎么找</th><th>代价（本页实测）</th><th>能回答的问题</th></tr></thead>
+<tbody><tr><td><code>LIKE '%ship%'</code></td><td>逐行读正文、逐字节比较</td><td class="num">4.900 ms（5,778 篇全表扫描）</td><td>能：任意子串。命中 563 篇</td></tr>
+<tr><td><code>LIKE</code> + trigram 索引</td><td>把 3 字符组合建成倒排索引后回表验证</td><td>索引体积×3.7（实测 2.49 → 9.21 MB）</td><td>能：≥3 字符子串。<code>LIKE</code> 自动走索引</td></tr>
+<tr><td><code>MATCH 'ship'</code></td><td>倒排索引直接给出行号列表</td><td class="num">0.140 ms（命中越多越慢，但不用读正文）</td><td>不能：子串。命中 359 篇（完整词元）</td></tr>
+<tr><td><code>MATCH 'ship*'</code></td><td>同一倒排索引里的词条区间扫描</td><td class="num">0.210 ms（前缀加速见第 06 节）</td><td>能：词元前缀。命中 448 篇</td></tr></tbody>
+</table></div>
+  <div class="note"><b>三者不是替代关系，而是三种语义</b>：<code>MATCH 'ship'</code> = 359 篇（只认完整词元）、
+    <code>MATCH 'ship*'</code> = 448 篇（词元前缀）、<code>LIKE '%ship%'</code> = 563 篇（任意子串，含
+   <i>warship</i>）。要子串又不想全表扫描，就用 <code>trigram</code> 分词器给 LIKE/GLOB 建索引。</div>
+
+  <h3>它和 Lucene 是同一族</h3>
+  <p>FTS5 不索引「文档」，而是索引「一次提交写入的一批词条」，这个单位叫<b>段</b>；查询时把若干段归并成一个有序流。这套「不可变段 + 后台合并」的骨架，和 Lucene/Elasticsearch 是同一个设计传统：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>概念</th><th>SQLite FTS5</th><th>Lucene / Elasticsearch</th></tr></thead>
+<tbody><tr><td>不可变的索引单元</td><td>段 segment，写在 <code>%_data</code> 的连续页里</td><td>segment，写成独立文件/块</td></tr>
+<tr><td>写入缓冲</td><td>内存哈希（默认 1 MB）+ 提交时排序落段</td><td>内存 buffer + flush 成新 segment</td></tr>
+<tr><td>合并</td><td>按层（level）+ 写计数器配额的增量合并；automerge/crisismerge 阈值</td><td>TieredMergePolicy / LogMergePolicy</td></tr>
+<tr><td>文档列表</td><td>doclist：行号增量 + 位置列表，变长整数编码</td><td>postings list：doc id delta + positions</td></tr>
+<tr><td>删除</td><td>在最新段里写带删除标记的记录；contentless_delete 用墓碑哈希页</td><td>每个 segment 上的 <code>.liv</code> 存活文档位图 + tombstone</td></tr>
+<tr><td>排序</td><td>内置 bm25()，返回负分（配 <code>ORDER BY rank</code>）</td><td>BM25 相似度，可插拔</td></tr>
+<tr><td>中文</td><td>默认 unicode61 会把整段 CJK 连成一个词元（见第 09 节），要 trigram 或 ICU</td><td>需要 IK / jieba / smartcn 等分词插件</td></tr>
+<tr><td>事务语义</td><td>跟着 SQLite 的事务走，索引与业务表可以同事务原子提交</td><td>近实时（refresh 间隔）</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="glossary">
+  <h2><span class="n">02</span>术语表</h2>
+  <p class="sub">本页出现的每个词，先用一句话说清，再给它在源码里的具体形态。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>术语</th><th>一句话定义</th><th>在本页哪里出现</th></tr></thead>
+    <tbody>
+<tr><td><b>词元 token</b></td><td>分词器输出的最小检索单位（不是一个字，也不是一个字节）</td><td>第 04 节：<code>unicode61</code> 把 <code>hello-world</code> 切成 <code>hello</code> / <code>world</code></td></tr>
+<tr><td><b>分词器 tokenizer</b></td><td>决定「什么算一个词元」的插件</td><td>第 09 节：6 种内置分词器的真实词表对照</td></tr>
+<tr><td><b>倒排索引 inverted index</b></td><td>从「词元」反查「含它的文档」的映射，而非从文档正查词</td><td>第 03 节：<code>%_data</code> 里一切数据都是它</td></tr>
+<tr><td><b>文档列表 doclist</b></td><td>某个词元命中的行号序列，行号做差值编码</td><td>第 05 节：解码表里 <code>行号:列:位移</code> 那一列</td></tr>
+<tr><td><b>位置列表 poslist</b></td><td>每个命中在行内的（列号, 位移）序列；短语/NEAR 靠它验证</td><td>第 06 节：<code>"database engine"</code> 为什么命中、反过来不命中</td></tr>
+<tr><td><b>段 segment</b></td><td>一次提交写入的一批有序词条，落盘后不可修改</td><td>第 07 节：一张图看清 0 层小段到高层大段</td></tr>
+<tr><td><b>层 level</b></td><td>段的组织分组，只在合并策略里用来挑输入（不影响查询结果）</td><td>第 07 节：结构记录里的 <code>nLevel</code> 与实测层级形状</td></tr>
+<tr><td><b>合并 merge</b></td><td>把若干段归并成一个新段并删掉旧段，属后台维护成本</td><td>第 07 节：automerge=4 / crisismerge=16 的实测行为</td></tr>
+<tr><td><b>变长整数 varint</b></td><td>SQLite 自己的紧凑整数编码，1 字节存≤127，最大 9 字节</td><td>第 05 节的逐字节例子</td></tr>
+<tr><td><b>前缀索引 prefix index</b></td><td>额外维护的短前缀倒排索引，专治 <code>abc*</code> 这类查询</td><td>第 06 节实测：2 字符前缀快 5.7 倍</td></tr>
+<tr><td><b>bm25</b></td><td>FTS5 内置的相关度打分函数（带负号）</td><td>第 06 节：公式 + 手算 + 与 SQLite 逐位对账</td></tr>
+<tr><td><b>contentless / external content</b></td><td>不存正文副本的两种模式：contentless 干脆不存，external content 复用你已有的表</td><td>第 08 节：contentless 文件 6.39 → 2.63 MB</td></tr>
+
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="storage">
+  <h2><span class="n">03</span>存储全貌：一张虚拟表 + 5 张影子表</h2>
+  <p class="sub">FTS5 是虚拟表模块（<code>sqlite3_module</code>），自己不拥有文件格式——它把索引全部写进普通 SQLite 表里。</p>
+  <p>创建 <code>CREATE VIRTUAL TABLE demo USING fts5(title, body)</code> 之后，<code>sqlite_master</code> 里会多出 5 张以表名为前缀的
+     <b>影子表</b>（shadow tables）——它们就是普通表，可以直接 SELECT，这也是本页所有「解剖」得以进行的原因：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>影子表</th><th>建表语句</th><th>作用</th><th class="num">本页 demo 体积</th></tr></thead>
+<tbody><tr><td><code>&lt;t&gt;_data</code></td><td><code>id INTEGER PRIMARY KEY, block BLOB</code></td><td>全部倒排索引：结构记录、平均值记录、段页、doclist 索引、墓碑页</td><td>2.49 MB</td></tr>
+<tr><td><code>&lt;t&gt;_content</code></td><td><code>id INTEGER PRIMARY KEY, c0, c1 …</code></td><td>正文副本；只有默认模式才有（contentless / external content 没有）</td><td>3.28 MB</td></tr>
+<tr><td><code>&lt;t&gt;_docsize</code></td><td><code>id INTEGER PRIMARY KEY, sz BLOB</code></td><td>每行每列的 token 数（变长整数序列），bm25 算 D 用；columnsize=0 时不存在</td><td>12 KB</td></tr>
+<tr><td><code>&lt;t&gt;_idx</code></td><td><code>segid, term, pgno</code></td><td>前缀索引词条清单（每个段哪些前缀词，落在哪一页）</td><td>48 KB</td></tr>
+<tr><td><code>&lt;t&gt;_config</code></td><td><code>k PRIMARY KEY, v</code></td><td>版本号 4 与运行时配置（automerge / crisismerge / hashsize …）</td><td>&lt; 1 KB</td></tr></tbody>
+</table></div>
+  <pre><code>-- demo 库：一个 2 列 FTS5 表，创建后 sqlite_master 里多出 6 行
+sqlite> SELECT name, type FROM sqlite_master ORDER BY name;
+demo          table   -- 虚拟表本身（只有 schema，没有数据页）
+demo_config   table   -- k/v：版本号 + 运行时配置
+demo_content  table   -- id, c0, c1：正文副本
+demo_data     table   -- id, block：**真正的倒排索引**
+demo_docsize  table   -- id, sz：每行每列的 token 数
+demo_idx      table   -- segid, term, pgno：前缀索引词条清单
+
+-- 本页 demo 库（6 篇小文档）里 %_data 的全部内容：
+sqlite> SELECT id, length(block) FROM demo_data;
+1           3          -- id=1：平均值记录（6 行 / 15 / 103 个 token）
+10          12         -- id=10：结构记录（索引里有几层几个段）
+137438953473  911       -- 段 1 的第 1 页，911 字节</code></pre>
+
+  <h3>%_data 的行号是一个打包的位域</h3>
+  <p>倒排索引不是独立文件，而是 <code>%_data</code> 这张表的若干行。<code>id</code> 这个整数被按位切分存储「哪个段的第几页」，由宏 <code>fts5_dri()</code> 生成，位宽写在 <code>fts5_index.c</code> 里：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>位段</th><th>宽度</th><th>含义</th></tr></thead>
+<tbody><tr><td>63..48 段 id</td><td>16 位</td><td>段编号，1~65535，删除后可复用</td></tr>
+<tr><td>47 文档列表索引位</td><td>1 位</td><td>1 = 这一行属于 doclist 索引，0 = 段页</td></tr>
+<tr><td>46..42 索引树高度</td><td>5 位</td><td>doclist 索引自己的层数</td></tr>
+<tr><td>41..0 页号</td><td>31 位</td><td>段内第几页，从 1 开始</td></tr></tbody>
+</table></div>
+  <p>本页 demo 库里那个 911 字节的段页，<code>id</code> 正是 <code>137438953473</code>：
+     <code>137438953473 = (1 &lt;&lt; 37) + 1</code>，即段 id=1、非索引页、高度 0、页号 1；库里的 <code>%_data</code> 一共只有 3 行（id=1、10 和它）有序号 1、10 的特殊行留给「平均值记录」和「结构记录」，其余全部是段页与 doclist 索引页。</p>
+</section>
+
+<section id="write">
+  <h2><span class="n">04</span>写入路径：一次 INSERT 的旅程</h2>
+  <p class="sub">写入是「先内存、后段」的两段式；理解了这一条，数据库配置里 90% 的 FTS5 性能问题就都能定位。</p>
+  <ol class="tight">
+    <li><b>分词</b>：对每一列调用分词器（默认 <code>unicode61</code>），得到词元序列，同时记下每个词元的列号与位移。</li>
+    <li><b>进内存哈希</b>（<code>hashsize</code>，默认 1 MB）：按词元聚合出行号列表与位置列表。释放缓冲区的时机很讲究——只有遇到「行号不递增」或缓冲区超限才刷盘，所以一个事务内的行会攒在一起。</li>
+    <li><b>提交时落段</b>：把哈希表按词元排序，写成一个新的 <b>0 层段</b>，并更新结构记录、平均值记录。段一落盘就<b>不再修改</b>。</li>
+    <li><b>增量合并</b>：每写一定数量的叶页（<code>FTS5_WORK_UNIT=64</code> 页为一个工作单位）就在写路径上顺手合并几段。</li>
+  </ol>
+  <p>第 2 步的「内存攒批」带来了本页最实用的一条实测结论：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>提交方式（同一批 4,000 篇）</th><th class="num">耗时 s</th><th class="num">段总数</th><th class="num">各层段数</th><th class="num">索引 MB</th><th>说明</th></tr></thead>
+<tbody><tr><td>一个事务插 4,000 篇</td><td class="num">0.092</td><td class="num">5</td><td class="num">4 / 1</td><td class="num">1.92</td><td>推荐做法</td></tr>
+<tr><td>每 100 篇提交一次</td><td class="num">0.409</td><td class="num">10</td><td class="num">6 / 3 / 1</td><td class="num">2.00</td><td></td></tr>
+<tr><td>每篇提交一次</td><td class="num">20.101</td><td class="num">10</td><td class="num">0 / 2 / 2 / 3 / 3</td><td class="num">1.99</td><td>灾难：段多、慢 200 倍</td></tr>
+<tr><td>一个事务，但 hashsize=2048</td><td class="num">0.345</td><td class="num">9</td><td class="num">2 / 0 / 1 / 3 / 3</td><td class="num">1.98</td><td>哈希太小→事务内提前刷段</td></tr>
+<tr><td>一个事务 + automerge=0</td><td class="num">0.089</td><td class="num">4</td><td class="num">4</td><td class="num">1.93</td><td>不做增量合并</td></tr></tbody>
+</table></div>
+  <p>同 4,000 篇数据，一个事务 0.092 秒、每篇提交一次 20.10 秒（218×）。原因是每篇提交都要把哈希表排序落成新段，而提交越碎、段越多、每次提交后还要触发合并。行号递增的前提也要求按 rowid 顺序写入，否则哈希表会更早刷盘。</p>
+  <div class="note"><b>坑</b>：<code>automerge</code>、<code>crisismerge</code>、<code>hashsize</code>、<code>pgsz</code>
+    <b>不能</b>写进 <code>CREATE VIRTUAL TABLE</code>（会报 <code>unrecognized option</code>），必须用配置表写入：
+    <code>INSERT INTO ft(ft, rank) VALUES('automerge', 4);</code>。同理 <code>optimize</code> / <code>merge</code> /
+    <code>integrity-check</code> 也是「往表里插一个特殊字符串」实现的管理命令。</div>
+
+  <h3>源码里的默认值</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>参数</th><th>默认值</th><th>说明</th><th>出处</th></tr></thead>
+<tbody><tr><td>叶子页大小 pgsz</td><td>4050 字节</td><td>32~65536，运行时可改</td><td>fts5_config.c FTS5_DEFAULT_PAGE_SIZE</td></tr>
+<tr><td>内存哈希上限 hashsize</td><td>1 MB</td><td>运行时；超限就提前刷段</td><td>FTS5_DEFAULT_HASHSIZE</td></tr>
+<tr><td>增量合并阈值 automerge</td><td>4</td><td>0=关闭；某层段数≥ 4 就合并</td><td>FTS5_DEFAULT_AUTOMERGE</td></tr>
+<tr><td>急合并阈值 crisismerge</td><td>16</td><td>某层段数≥ 16 无条件合并</td><td>FTS5_DEFAULT_CRISISMERGE</td></tr>
+<tr><td>手动 merge 下限 usermerge</td><td>4</td><td>merge 命令每次至少并这么多段</td><td>FTS5_DEFAULT_USERMERGE</td></tr>
+<tr><td>删除合并阈值 deletemerge</td><td>10%</td><td>删除键占比超过就触发合并</td><td>FTS5_DEFAULT_DELETE_AUTOMERGE</td></tr>
+<tr><td>合并工作量单位</td><td>64 叶页</td><td>每次提交最多干多少合并活</td><td>fts5_index.c FTS5_WORK_UNIT</td></tr>
+<tr><td>optimize 每步</td><td>1000 叶页</td><td>optimize 是分步做的，可被打断</td><td>FTS5_OPT_WORK_UNIT</td></tr>
+<tr><td>段 id / 段数上限</td><td>16 位，2000 段</td><td>段 id 复用；超出即危机合并</td><td>FTS5_DATA_ID_B / FTS5_MAX_SEGMENT</td></tr>
+<tr><td>层数上限</td><td>64</td><td>结构记录里的 nLevel</td><td>FTS5_MAX_LEVEL</td></tr>
+<tr><td>前缀索引上限</td><td>31 个，长度 1~999</td><td>每次前缀查询按字符数挑</td><td>FTS5_MAX_PREFIX_INDEXES</td></tr>
+<tr><td>词元长度上限</td><td>32768 字节</td><td>超出截断（页头偏移字段是 16 位）</td><td>FTS5_MAX_TOKEN_SIZE</td></tr>
+<tr><td>bm25 参数</td><td>k1=1.2，b=0.75</td><td>写死在源码里，改不了</td><td>fts5_aux.c</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="bytes">
+  <h2><span class="n">05</span>字节级解剖：%_data 里到底存了什么</h2>
+  <p class="sub">这一节全部来自真实字节：本页 demo 库（6 篇文档、2 列）与一份 5,778 篇语料的索引，逐个字节解出来。</p>
+
+  <h3>5.1 结构记录（id = 10）：索引的目录</h3>
+  <p>整个索引的「有几层、每层几个段、每个段占哪些页」写在一条记录里。demo 库那条只有 12 字节，是全文：
+     <code>00 00 00 00 01 01 01 00 01 01 01 01</code>。真实语料库的那条 36 字节（含正在进行的合并状态）：</p>
+  <pre><code>00 00 00 00 02 07 85 5b 04 04 04 29 39 08 26 36 09 28 3b 01 17 22 00 03 05 01 81 5c 03 01 82 0a 02 01 81 02</code></pre>
+<div class="tblwrap"><table>
+<thead><tr><th>字段</th><th>字节（十六进制）</th><th class="num">解码值</th></tr></thead>
+<tbody><tr><td>配置 cookie（4 字节大端）</td><td><code>00000000</code></td><td class="num">0</td></tr>
+<tr><td>层数 nLevel</td><td><code>02</code></td><td class="num">2</td></tr>
+<tr><td>段总数 nSegment</td><td><code>07</code></td><td class="num">7</td></tr>
+<tr><td>写计数器 nWriteCounter</td><td><code>855b</code></td><td class="num">731</td></tr>
+<tr><td>L0 正在合并的输入段数 nMerge</td><td><code>04</code></td><td class="num">4</td></tr>
+<tr><td>L0 段数</td><td><code>04</code></td><td class="num">4</td></tr>
+<tr><td>L0 段1 id</td><td><code>04</code></td><td class="num">4</td></tr>
+<tr><td>L0 段1 首页号</td><td><code>29</code></td><td class="num">41</td></tr>
+<tr><td>L0 段1 末页号</td><td><code>39</code></td><td class="num">57</td></tr>
+<tr><td>L0 段2 id</td><td><code>08</code></td><td class="num">8</td></tr>
+<tr><td>L0 段2 首页号</td><td><code>26</code></td><td class="num">38</td></tr>
+<tr><td>L0 段2 末页号</td><td><code>36</code></td><td class="num">54</td></tr>
+<tr><td>L0 段3 id</td><td><code>09</code></td><td class="num">9</td></tr>
+<tr><td>L0 段3 首页号</td><td><code>28</code></td><td class="num">40</td></tr>
+<tr><td>L0 段3 末页号</td><td><code>3b</code></td><td class="num">59</td></tr>
+<tr><td>L0 段4 id</td><td><code>01</code></td><td class="num">1</td></tr>
+<tr><td>L0 段4 首页号</td><td><code>17</code></td><td class="num">23</td></tr>
+<tr><td>L0 段4 末页号</td><td><code>22</code></td><td class="num">34</td></tr>
+<tr><td>L1 正在合并的输入段数 nMerge</td><td><code>00</code></td><td class="num">0</td></tr>
+<tr><td>L1 段数</td><td><code>03</code></td><td class="num">3</td></tr>
+<tr><td>L1 段1 id</td><td><code>05</code></td><td class="num">5</td></tr>
+<tr><td>L1 段1 首页号</td><td><code>01</code></td><td class="num">1</td></tr>
+<tr><td>L1 段1 末页号</td><td><code>815c</code></td><td class="num">220</td></tr>
+<tr><td>L1 段2 id</td><td><code>03</code></td><td class="num">3</td></tr>
+<tr><td>L1 段2 首页号</td><td><code>01</code></td><td class="num">1</td></tr>
+<tr><td>L1 段2 末页号</td><td><code>820a</code></td><td class="num">266</td></tr>
+<tr><td>L1 段3 id</td><td><code>02</code></td><td class="num">2</td></tr>
+<tr><td>L1 段3 首页号</td><td><code>01</code></td><td class="num">1</td></tr>
+<tr><td>L1 段3 末页号</td><td><code>8102</code></td><td class="num">130</td></tr></tbody>
+</table></div>
+  <p>两个细节值得注意：<code>nWriteCounter=731</code> 是「累计写入过多少叶页」，它是<b>增量合并的配额来源</b>；
+     L0 的 <code>nMerge=4</code> 说明这 4 个段正处在一次合并中——结构记录会记录进行中的合并，所以合并可以分多次提交完成。</p>
+
+  <h3>5.2 平均值记录（id = 1）：bm25 的分母</h3>
+  <p>demo 库的这一行只有 3 个字节：<code>060f67</code> →解码为 <code>6 / 15 / 103</code>，含义是「6 篇文档；第 1 列（title）共 15 个 token；第 2 列（body）共 103 个 token」。把它当验算题：本页用 Python 按 <code>unicode61</code> 规则（连续字母/数字算一个词元、统一小写）独立数了一遍，得到 <code>title 15 / body 103</code> ——与 FTS5 写入的值完全一致。</p>
+
+  <h3>5.3 段叶页格式</h3>
+  <p>一个段由若干固定大小（默认 <code>pgsz=4050</code> 字节）的叶页组成。页里没有分隔符、没有对齐填充，
+     <b>定位全靠页尾那张增量压缩的偏移表</b>：</p>
+<figure class="fig"><svg viewBox="0 0 720 330" role="img" aria-label="段叶页字节布局"><title>FTS5 段叶页的字节布局</title><rect x="20.0" y="40.0" width="3.0" height="26.0" class="l3" rx="3"/><rect x="23.0" y="40.0" width="628.5" height="26.0" class="l1" rx="3"/><rect x="651.5" y="40.0" width="48.5" height="26.0" class="l2" rx="3"/><rect x="20.0" y="72.0" width="10.0" height="10.0" class="l3" rx="2"/><text class="cap" x="36.0" y="81.0">4 字节页头（占整页 0%）</text><rect x="20.0" y="88.0" width="10.0" height="10.0" class="l1" rx="2"/><text class="cap" x="36.0" y="97.0">词条/文档列表区（842 字节）（占整页 92%）</text><rect x="20.0" y="104.0" width="10.0" height="10.0" class="l2" rx="2"/><text class="cap" x="36.0" y="113.0">页尾索引区 footer（65 字节）（占整页 7%）</text><text class="lb" x="20.0" y="30.0">一个真实段页：911 字节（demo 库，65 个词条，1 个文档列表段）</text><text class="lb" x="20.0" y="162.0">页头之后的词条条目：每条 = 词条文本（前缀压缩后）+ 文档列表</text><rect x="20.0" y="172.0" width="148.0" height="56.0" class="l1" rx="3" opacity="0.18"/><text class="lb" x="28.0" y="189.0">词条 4096</text><text class="cap" x="28.0" y="205.0">词条 5 字节 + 文档列表 10 字节</text><text class="cap" x="28.0" y="220.0">行号 5 · 位置 1:11</text><rect x="184.0" y="172.0" width="148.0" height="56.0" class="l1" rx="3" opacity="0.18"/><text class="lb" x="192.0" y="189.0">词条 a</text><text class="cap" x="192.0" y="205.0">词条 1 字节 + 文档列表 42 字节</text><text class="cap" x="192.0" y="220.0">行号 1 · 位置 1:2</text><rect x="348.0" y="172.0" width="148.0" height="56.0" class="l1" rx="3" opacity="0.18"/><text class="lb" x="356.0" y="189.0">词条 an</text><text class="cap" x="356.0" y="205.0">词条 1 字节 + 文档列表 44 字节</text><text class="cap" x="356.0" y="220.0">行号 2 · 位置 1:4</text><rect x="512.0" y="172.0" width="188.0" height="56.0" class="l2" rx="3" opacity="0.25"/><text class="ax mid" x="606.0" y="196.0" text-anchor="middle">其余 62 条</text><text class="cap mid" x="606.0" y="214.0" text-anchor="middle">共 65 个词条</text><text class="lb" x="20.0" y="270.0">页尾 65 字节：每个词的起始偏移做增量压缩后写成变长整数</text><rect x="20.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="37.0" y="296.0" text-anchor="middle">4</text><text class="cap mid" x="37.0" y="318.0" text-anchor="middle">#1</text><rect x="58.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="75.0" y="296.0" text-anchor="middle">11</text><text class="cap mid" x="75.0" y="318.0" text-anchor="middle">#2</text><rect x="96.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="113.0" y="296.0" text-anchor="middle">32</text><text class="cap mid" x="113.0" y="318.0" text-anchor="middle">#3</text><rect x="134.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="151.0" y="296.0" text-anchor="middle">13</text><text class="cap mid" x="151.0" y="318.0" text-anchor="middle">#4</text><rect x="172.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="189.0" y="296.0" text-anchor="middle">8</text><text class="cap mid" x="189.0" y="318.0" text-anchor="middle">#5</text><rect x="210.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="227.0" y="296.0" text-anchor="middle">14</text><text class="cap mid" x="227.0" y="318.0" text-anchor="middle">#6</text><rect x="248.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="265.0" y="296.0" text-anchor="middle">13</text><text class="cap mid" x="265.0" y="318.0" text-anchor="middle">#7</text><rect x="286.0" y="280.0" width="34.0" height="24.0" class="l3" rx="3"/><text class="ax mid" x="303.0" y="296.0" text-anchor="middle">10</text><text class="cap mid" x="303.0" y="318.0" text-anchor="middle">#8</text><text class="cap" x="330.0" y="296.0">…（值 = 下一个词条相对上一个的字节偏移，同时就是上一条词条的条目长度）</text></svg><figcaption>这是 demo 库那个真实页（911 字节）的按比例展开：页头 4 字节只在存续页上写字，词条与文档列表挤在一起、中间不留分隔，<b>定位靠的是页尾 footer</b>；页尾里第 k 个变长整数既是第 k 个词的起始偏移（相对第 k-1 个），也是第 k-1 个词条的长度。本页 65 个词条只用了 65 字节页尾。</figcaption></figure>
+  <p>两条编码规则是整个格式的核心：</p>
+  <ul class="tight">
+    <li><b>词条前缀压缩</b>：只存「与上一个词元的公共前缀长度」+「新增字节」。所以 <code>an</code> 只需存
+        <code>common=1, new=1</code> ——真实字节里 <code>an</code> 的条目只有 <code>01 6e</code> 两个字节的说明部分。</li>
+    <li><b>行号差值编码</b>：一个词元的文档列表存「首个行号 + 后续差值」。<code>a</code> 出现在第 1、2、3、5、6 篇里，存的是 <code>1, +1, +1, +2, +1</code>。</li>
+  </ul>
+<div class="tblwrap"><table>
+<thead><tr><th>词元</th><th class="num">首字节标签</th><th class="num">与上一个词公共前缀</th><th class="num">新增字节</th><th class="num">条目字节</th><th>文档列表（行号:列:位移）</th></tr></thead>
+<tbody><tr><td><code>4096</code></td><td class="num">0</td><td class="num">0</td><td class="num">5</td><td class="num">15</td><td>5(1:11)</td></tr>
+<tr><td><code>a</code></td><td class="num">0</td><td class="num">1</td><td class="num">1</td><td class="num">43</td><td>1(1:2), 2(1:0), 3(1:0)</td></tr>
+<tr><td><code>an</code></td><td class="num">0</td><td class="num">2</td><td class="num">1</td><td class="num">45</td><td>2(1:4), 4(1:0)</td></tr>
+<tr><td><code>at</code></td><td class="num">0</td><td class="num">2</td><td class="num">1</td><td class="num">21</td><td>4(1:19)</td></tr>
+<tr><td><code>b</code></td><td class="num">0</td><td class="num">1</td><td class="num">1</td><td class="num">22</td><td>2(1:10), 5(0:0)</td></tr>
+<tr><td><code>by</code></td><td class="num">0</td><td class="num">2</td><td class="num">1</td><td class="num">27</td><td>1(1:15), 3(1:14)</td></tr>
+<tr><td><code>bytes</code></td><td class="num">0</td><td class="num">3</td><td class="num">3</td><td class="num">23</td><td>5(1:12)</td></tr>
+<tr><td><code>caches</code></td><td class="num">0</td><td class="num">1</td><td class="num">6</td><td class="num">23</td><td>5(1:15)</td></tr></tbody>
+</table></div>
+  <p>每条记录的形态是 <code>词元 + 文档列表</code>，文档列表里每篇文档后面跟着它的位置列表。位置不是「字节偏移」，而是<b>词元序号</b>，并且和列号打包进一个 64 位整数（高 32 位列、低 31 位词元序号）。</p>
+
+  <h3>5.4 交叉验证：自己解的和 FTS5 自己说的对得上吗</h3>
+  <p>把这一页 65 个词条全部解完，得到 118 条 <code>(词元, 行号, 列号, 词元序号)</code> 记录；再让 FTS5 自己通过 <code>fts5vocab</code> 的 <code>instance</code> 模式输出同一份清单：118 条。两边<b>逐条比对完全一致</b>（(4096, 5, 1, 11)、(a, 1, 1, 2)、(a, 1, 1, 6)、(a, 2, 1, 0) …）。后面的结论都可以放心建立在这套解码上。</p>
+
+  <h3>5.5 变长整数是什么样</h3>
+  <pre><code>-- 写计数器 731 的变长整数编码（结构记录里真实出现的 2 个字节）
+-- 规则：每字节低 7 位有效，最高位 1 表示"还有后续字节"
+0x85 = 1000_0101b  →  有后续，取低 7 位 000_0101b = 5
+0x5b = 0101_1011b  →  结束，取低 7 位 101_1011b = 91
+值 = 5 × 128 + 91 = 731          -- 与解码结果一致（731）
+
+-- 单字节的值最大 127；1 个字节存 doclist 里常见的"行号增量"完全够用
+-- 页尾偏移用的也是这套编码，所以页尾能压缩（见第 05 节）</code></pre>
+  <p>页尾偏移表里用得最多的就是这种 1 字节值（≤127）：本页那个 911 字节的页，65 个词条的偏移表只花了
+     65 字节，平均每个词 1 字节左右。</p>
+
+  <h3>5.6 词条的第一个字节：这是哪个索引</h3>
+  <p>真实字节里第一个词条是 <code>05 30 34 30 39 36</code>，解出来是词元 <code>4096</code>，但长度是 5 不是 4 ——多出来的 <code>0x30</code> 是<b>索引标签</b>：<code>'0'</code>（0x30）表示主索引，<code>'1'</code>…<code>'31'</code> 表示第 n 个前缀索引（<code>fts5_index.c: FTS5_MAIN_PREFIX</code>）。所有前缀索引共用同一套段/页机制，只是词条前缀不同，所以 <code>prefix='2 3'</code> 不改变格式，只是往同一批段里多写了一批带标签的词条。</p>
+
+  <h3>5.7 文档列表索引（dlidx）与擂台树归并</h3>
+  <p>两个容易忽略的结构：</p>
+  <ul class="tight">
+    <li><b>doclist 索引</b>：一个词元的行号列表可能横跨几百页（<code>the</code> 这种词）。为了让「跳到某一行号」不用顺序读，每页的第一个行号被单独抄进一棵小 b-tree（<code>FTS5_DLIDX_ROWID</code>），并且只有页数超过
+        <code>FTS5_MIN_DLIDX_SIZE=4</code> 才建。</li>
+    <li><b>擂台树（tournament tree）</b>：查询时要同时归并 N 个段的行号列表。FTS5 没有用堆，而是用一张
+        <code>aFirst[]</code> 数组把 N 个迭代器两两比较的结果缓存成树：<code>aFirst[1]</code> 永远指向当前最小的那个。每次前进只需沿路径重算 <code>O(log N)</code> 次比较，且没有堆的分配开销。</li>
+  </ul>
+</section>
+
+<section id="query">
+  <h2><span class="n">06</span>查询路径：从 MATCH 到一行结果</h2>
+  <p class="sub">查询计划由「MATCH 约束 + rank 约束」驱动；词元先各自拿到行号列表，再归并、再验证。</p>
+
+  <h3>6.1 一个 MATCH 表达式能写什么</h3>
+  <p>demo 库 6 篇文档上的真实输出（rowid）：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>查询</th><th>语义</th><th class="num">命中 rowid</th></tr></thead>
+<tbody><tr><td><code>MATCH 'engine'</code></td><td>词元匹配</td><td>2、1、3、6、5</td></tr>
+<tr><td><code>MATCH '&quot;database engine&quot;'</code></td><td>短语：两个词元相邻且顺序正确</td><td>1、2</td></tr>
+<tr><td><code>MATCH '&quot;engine database&quot;'</code></td><td>顺序反了</td><td>（无）</td></tr>
+<tr><td><code>MATCH 'NEAR(engine b, 6)'</code></td><td>距离 6 个词元以内</td><td>2</td></tr>
+<tr><td><code>MATCH 'sea*'</code></td><td>前缀</td><td>3、6</td></tr>
+<tr><td><code>MATCH 'title : index'</code></td><td>只看 title 列</td><td>4</td></tr>
+<tr><td><code>MATCH 'page NOT cache'</code></td><td>布尔</td><td>1、5</td></tr></tbody>
+</table></div>
+
+  <h3>6.2 短语是怎么验证的</h3>
+  <p>短语 <code>"database engine"</code> 会先被拆成两个词元，各自拿到行号列表，<b>然后检查同一篇文档里是否存在相邻且顺序正确的位置</b>：源码 <code>fts5ExprPhraseIsMatch()</code> 对每个词元的位置列表做 k 路归并，判断条件就是 <code>iPos + i</code>（第 i 个词元的位置必须比第一个大 i）。位置列表就是为这件事存在的。</p>
+  <p>实测：同一组词序反过来 <code>"engine database"</code> 命中 0 篇——倒排索引本身无法区分词序，<b>词序完全靠位置列表还原</b>。
+     <code>NEAR(engine b, 6)</code> 是同一套机制的推广：允许 N 个词元的间隔，默认 N=10。</p>
+  <div class="note"><code>detail=column</code> 和 <code>detail=none</code> 会丢掉位置信息，于是短语与 NEAR 直接报错：
+    <code>fts5: phrase queries are not supported (detail!=full)</code>。这不是「慢一点」，而是功能不存在。</div>
+
+  <h3>6.3 前缀查询走哪条路</h3>
+  <p><code>MATCH 'ma*'</code> 这种查询有两种执行方式：扫主索引里 <code>ma</code>~<code>mb</code> 区间的所有词条，或者直接读「2 字符前缀索引」。FTS5 按<b>字符长度</b>挑选索引（<code>fts5IndexCharlen</code>），挑不到就只能扫。</p>
+<figure class="fig"><svg viewBox="0 0 720 300" role="img" aria-label="前缀索引效果"><title>有无前缀索引时前缀查询的耗时</title><text class="cap" x="8.0" y="16.0">柱高 = 查询耗时（毫秒）。纵轴刻度见左侧；两次查询返回的行完全一致</text><line class="gl" x1="60.0" y1="224.0" x2="640.0" y2="224.0"/><text class="ax" x="52.0" y="228.0" text-anchor="end">0.00</text><line class="gl" x1="60.0" y1="190.4" x2="640.0" y2="190.4"/><text class="ax" x="52.0" y="194.4" text-anchor="end">0.25</text><line class="gl" x1="60.0" y1="156.7" x2="640.0" y2="156.7"/><text class="ax" x="52.0" y="160.7" text-anchor="end">0.50</text><line class="gl" x1="60.0" y1="123.1" x2="640.0" y2="123.1"/><text class="ax" x="52.0" y="127.1" text-anchor="end">0.75</text><line class="gl" x1="60.0" y1="89.5" x2="640.0" y2="89.5"/><text class="ax" x="52.0" y="93.5" text-anchor="end">1.00</text><line class="axl" x1="60.0" y1="224.0" x2="640.0" y2="224.0"/><rect x="8.0" y="34.0" width="12.0" height="8.0" class="l1" rx="2"/><text class="cap" x="26.0" y="42.0">有 prefix=&#x27;2 3&#x27; 前缀索引</text><rect x="220.0" y="34.0" width="12.0" height="8.0" class="l2" rx="2"/><text class="cap" x="238.0" y="42.0">无前缀索引（扫主索引）</text><rect x="105.7" y="201.8" width="46.0" height="22.2" class="l1" rx="3"/><text class="cap mid" x="128.7" y="195.8" text-anchor="middle">0.165</text><rect x="161.7" y="97.4" width="46.0" height="126.6" class="l2" rx="3"/><text class="cap mid" x="184.7" y="91.4" text-anchor="middle">0.941</text><text class="ax mid" x="156.7" y="242.0" text-anchor="middle">2 字符前缀 ma*</text><rect x="299.0" y="218.3" width="46.0" height="5.7" class="l1" rx="3"/><text class="cap mid" x="322.0" y="212.3" text-anchor="middle">0.042</text><rect x="355.0" y="208.4" width="46.0" height="15.6" class="l2" rx="3"/><text class="cap mid" x="378.0" y="202.4" text-anchor="middle">0.116</text><text class="ax mid" x="350.0" y="242.0" text-anchor="middle">3 字符前缀 mar*</text><rect x="492.3" y="219.7" width="46.0" height="4.3" class="l1" rx="3"/><text class="cap mid" x="515.3" y="213.7" text-anchor="middle">0.032</text><rect x="548.3" y="219.7" width="46.0" height="4.3" class="l2" rx="3"/><text class="cap mid" x="571.3" y="213.7" text-anchor="middle">0.032</text><text class="ax mid" x="543.3" y="242.0" text-anchor="middle">5 字符前缀 marri*</text><text class="cap" x="350.0" y="264.0" text-anchor="middle">返回结果集完全一致（两次查询逐行比对相同），差别只在要不要扫主索引的词条区间</text></svg><figcaption>前缀越长，主索引里要扫的词条区间越窄（0.941 → 0.116 → 0.032 ms），前缀索引能省的相对时间就越少；5 字符前缀没有对应索引，两条路径耗时相同。这就是 prefix='2 3' 的真实价值区：<b>短前缀查询</b>。</figcaption></figure>
+  <p>实测对照（同一份 5,778 篇语料、同一台机器，11 次中位数）：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>前缀长度</th><th class="num">无前缀索引</th><th class="num">有 prefix='2 3'</th><th class="num">倍数</th><th class="num">命中篇数</th></tr></thead>
+<tbody><tr><td>2字符前缀 'ma*'</td><td class="num">0.941 ms</td><td class="num">0.165 ms</td><td class="num">5.7×</td><td class="num">3,405 篇</td></tr>
+<tr><td>3字符前缀 'mar*'</td><td class="num">0.116 ms</td><td class="num">0.042 ms</td><td class="num">2.8×</td><td class="num">651 篇</td></tr>
+<tr><td>5字符前缀 'marri*'</td><td class="num">0.032 ms</td><td class="num">0.032 ms</td><td class="num">1.0×</td><td class="num">165 篇</td></tr></tbody>
+</table></div>
+  <p>结论：前缀索引的价值随「前缀越短、区间越宽」而放大。5 字符前缀本来只对应很窄的一段词条，装索引纯属浪费空间。</p>
+
+  <h3>6.4 归并、去重与删除</h3>
+  <p>遍历一个词元的结果时，所有段（以及所有层）的迭代器同时前进，擂台树每次给出最小的行号；若同一行号在多个段里都出现，<b>较新的段赢</b>（删除标记也在最新段里），老段里那条被跳过。删除不重写老段：DELETE 会往最新段写一条带「删除标记」的记录（位置列表长度的最低位就是标记位），直到某次合并把它和旧记录一起消化掉。</p>
+  <p>列过滤用花括号语法：<code>MATCH '{body} : whale'</code> 把搜索限制在 body 列，不写列名则两列都搜。实测这份语料里 <code>MATCH 'whale'</code> 命中 1,614 篇，其中 1,611 篇只是书名里带 Whale（<i>Moby Dick; Or, The Whale</i>）——列过滤不是小事。</p>
+
+  <h3>6.5 bm25：相关度怎么算</h3>
+  <p>FTS5 的 <code>rank</code> 列默认等于 <code>bm25(表名)</code>，返回的是<b>负分</b>（SQLite 约定「小者优先」，所以推荐 <code>ORDER BY rank</code> 而不是 <code>ORDER BY bm25(...)</code>）：</p>
+  <div class="formula">score(D, Q) = Σ  IDF(qi) ·  f(qi,D)·(k1+1) / ( f(qi,D) + k1·(1 − b + b·|D|/avgdl) )
+
+IDF(qi) = ln( (N − n(qi) + 0.5) / (n(qi) + 0.5) )     若≤ 0 则强制取 1e-6
+
+k1 = 1.2     b = 0.75       （写在 fts5_aux.c 里，不是参数）
+f(qi,D) = 词元 qi 在文档 D 中的出现次数     |D| = 该行 token 总数（来自 %_docsize）
+N = 表内行数   n(qi) = 含该词元的行数   avgdl = 全表平均行 token 数最终返回 −score（SQLite 认为"越小越靠前"）</div>
+  <p>把公式落到 demo 库上，逐项列出（<code>f</code> 为词元出现次数，<code>D</code> 为该行 token 总数，平均值来自 <code>%_docsize</code>）：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>查询词</th><th class="num">文档 rowid</th><th class="num">出现次数 f</th><th class="num">整行 token 数 D</th><th class="num">IDF</th><th class="num">本页复算得分</th><th class="num">SQLite bm25() 得分</th></tr></thead>
+<tbody><tr><td><code>inverted</code></td><td class="num">4</td><td class="num">2</td><td class="num">24</td><td class="num">1.299282984130</td><td class="num">1.682263654265</td><td class="num">1.682263654265</td></tr>
+<tr><td><code>engine</code></td><td class="num">1</td><td class="num">2</td><td class="num">19</td><td class="num">0.000001000000</td><td class="num">0.000001388235</td><td class="num">0.000001388235</td></tr>
+<tr><td></td><td class="num">2</td><td class="num">3</td><td class="num">18</td><td class="num">0.000001000000</td><td class="num">0.000001600493</td><td class="num">0.000001600493</td></tr>
+<tr><td></td><td class="num">3</td><td class="num">2</td><td class="num">19</td><td class="num">0.000001000000</td><td class="num">0.000001388235</td><td class="num">0.000001388235</td></tr>
+<tr><td></td><td class="num">5</td><td class="num">1</td><td class="num">20</td><td class="num">0.000001000000</td><td class="num">0.000000993114</td><td class="num">0.000000993114</td></tr>
+<tr><td></td><td class="num">6</td><td class="num">1</td><td class="num">18</td><td class="num">0.000001000000</td><td class="num">0.000001035914</td><td class="num">0.000001035914</td></tr></tbody>
+</table></div>
+  <ul class="tight">
+    <li><code>inverted</code>：N=6，n=1 → IDF=1.299283；本页复算 1.682263654265，与 <code>bm25()</code> 输出<b>逐位相同</b>（差 0.0）。</li>
+    <li><code>engine</code>：出现在 5/6 篇里→原始 IDF=-1.2993，为负值，源码把它钳到 <code>1e-6</code>；本页复算与 SQLite 输出只差 <code>2.1e-22</code>（浮点结合顺序差异）。
+        <b>词元太常见时 bm25 几乎没有区分度</b>，这就是它在小表上「人人一分」的原因。</li>
+    <li>给列加权：<code>bm25(demo, 10.0, 1.0)</code> 让 title 列的命中按 10 倍计入 f ——用于「标题命中比正文重要」。</li>
+  </ul>
+  <p><code>ORDER BY rank</code> 由 FTS5 自己实现：它把候选行物化进一个临时结构（<code>Fts5Sorter</code>），按公式算分后排序，再把行号交回 SQLite 取正文。实测 10 个候选时 <code>rank_top10</code> 耗时
+     2.233 ms，而同一条 MATCH 不带排序只要 0.586 ms（返回全部 1,614 行）——排序是要花钱的。</p>
+</section>
+
+<section id="merge">
+  <h2><span class="n">07</span>合并策略：LSM 式分级与「写配额」</h2>
+  <p class="sub">段不可修改，只能被合并。什么时候合并、合并多少，由三个阈值和一张写计数器共同决定。</p>
+  <p>规则很短：</p>
+  <ul class="tight">
+    <li>每次提交写完 0 层段后，累加「写过多少叶页」到<b>写计数器</b>；跨过 <code>FTS5_WORK_UNIT=64</code> 页的工作单位，就做一单位的合并工作（源码三行：<code>nWork = ⌊(nWrite+nLeaf)/nWorkUnit⌋ − ⌊nWrite/nWorkUnit⌋</code>，配额 <code>nRem = nWorkUnit × nWork ×层数</code>，然后交给 <code>fts5IndexMerge</code>）。</li>
+    <li>合并的挑法是「段数最多的那一层」，每次至少并 <code>automerge</code>（默认 4）段，输出到上一层。写完之后还要调用 <code>fts5StructurePromote</code> 把段在层之间挪一挪，让同一层里的段大小可比。</li>
+    <li>实测的形状是「0 层段小、数量多，高层段大、数量少」：一次事务写入 5,778 篇后，
+        L0 是 4 个 12~20 页的小段，L1 是 3 个 130~266 页的大段。</li>
+    <li>某一层段数达到 <code>crisismerge</code>（默认 16）时无条件合并，防止查询要归并的迭代器爆炸。段 id 只有 16 位、总段数上限 2000，这也是危机合并存在的原因。</li>
+    <li><code>optimize</code> 是「把所有段并成一个」的维护命令，按 <code>FTS5_OPT_WORK_UNIT=1000</code> 页一步做，可被打断；
+        <code>merge=N</code> 是「至少并 N 段」的温和版本。</li>
+  </ul>
+<figure class="fig"><svg viewBox="0 0 720 300" role="img" aria-label="段总数随插入过程的变化"><title>三种合并配置下，索引段总数随插入文档数的变化</title><line class="gl" x1="56.0" y1="244.0" x2="604.0" y2="244.0"/><text class="ax" x="48.0" y="248.0" text-anchor="end">0</text><line class="gl" x1="56.0" y1="174.0" x2="604.0" y2="174.0"/><text class="ax" x="48.0" y="178.0" text-anchor="end">4</text><line class="gl" x1="56.0" y1="104.0" x2="604.0" y2="104.0"/><text class="ax" x="48.0" y="108.0" text-anchor="end">8</text><line class="gl" x1="56.0" y1="34.0" x2="604.0" y2="34.0"/><text class="ax" x="48.0" y="38.0" text-anchor="end">12</text><line class="axl" x1="56.0" y1="244.0" x2="604.0" y2="244.0"/><line class="axl" x1="56.0" y1="34.0" x2="56.0" y2="244.0"/><line class="gl" x1="107.9" y1="244.0" x2="107.9" y2="248.0"/><text class="ax" x="107.9" y="260.0" text-anchor="middle">1,000</text><line class="gl" x1="211.7" y1="244.0" x2="211.7" y2="248.0"/><text class="ax" x="211.7" y="260.0" text-anchor="middle">2,000</text><line class="gl" x1="315.6" y1="244.0" x2="315.6" y2="248.0"/><text class="ax" x="315.6" y="260.0" text-anchor="middle">3,000</text><line class="gl" x1="419.4" y1="244.0" x2="419.4" y2="248.0"/><text class="ax" x="419.4" y="260.0" text-anchor="middle">4,000</text><line class="gl" x1="523.2" y1="244.0" x2="523.2" y2="248.0"/><text class="ax" x="523.2" y="260.0" text-anchor="middle">5,000</text><text class="cap" x="330.0" y="280.0" text-anchor="middle">已插入文档数（每批 500 篇提交一次，共 5,778 篇）</text><text class="cap" x="48.0" y="22.0" text-anchor="start">段总数</text><rect x="56.0" y="8.0" width="18.0" height="3.0" class="l1" rx="0"/><text class="cap" x="80.0" y="13.0">默认 automerge=4</text><rect x="194.4" y="8.0" width="18.0" height="3.0" class="l2" rx="0"/><text class="cap" x="218.4" y="13.0">automerge=0（关闭）</text><rect x="339.4" y="8.0" width="18.0" height="3.0" class="l3" rx="0"/><text class="cap" x="363.4" y="13.0">crisismerge=4（急合并阈值降到 4）</text><polyline class="ln1" points="56.0,226.5 107.9,209.0 159.8,191.5 211.7,156.5 263.7,139.0 315.6,191.5 367.5,174.0 419.4,139.0 471.3,121.5 523.2,104.0 575.1,156.5 604.0,121.5"/><text class="lb l1" x="612.0" y="125.5">7 段</text><rect x="53.8" y="224.3" width="4.4" height="4.4" class="l1" rx="5"/><rect x="105.7" y="206.8" width="4.4" height="4.4" class="l1" rx="5"/><rect x="157.6" y="189.3" width="4.4" height="4.4" class="l1" rx="5"/><rect x="209.5" y="154.3" width="4.4" height="4.4" class="l1" rx="5"/><rect x="261.5" y="136.8" width="4.4" height="4.4" class="l1" rx="5"/><rect x="313.4" y="189.3" width="4.4" height="4.4" class="l1" rx="5"/><rect x="365.3" y="171.8" width="4.4" height="4.4" class="l1" rx="5"/><rect x="417.2" y="136.8" width="4.4" height="4.4" class="l1" rx="5"/><rect x="469.1" y="119.3" width="4.4" height="4.4" class="l1" rx="5"/><rect x="521.0" y="101.8" width="4.4" height="4.4" class="l1" rx="5"/><rect x="572.9" y="154.3" width="4.4" height="4.4" class="l1" rx="5"/><rect x="601.8" y="119.3" width="4.4" height="4.4" class="l1" rx="5"/><polyline class="ln2" points="56.0,226.5 107.9,209.0 159.8,191.5 211.7,174.0 263.7,156.5 315.6,139.0 367.5,121.5 419.4,104.0 471.3,86.5 523.2,69.0 575.1,51.5 604.0,34.0"/><text class="lb l2" x="612.0" y="38.0">12 段</text><rect x="53.8" y="224.3" width="4.4" height="4.4" class="l2" rx="5"/><rect x="105.7" y="206.8" width="4.4" height="4.4" class="l2" rx="5"/><rect x="157.6" y="189.3" width="4.4" height="4.4" class="l2" rx="5"/><rect x="209.5" y="171.8" width="4.4" height="4.4" class="l2" rx="5"/><rect x="261.5" y="154.3" width="4.4" height="4.4" class="l2" rx="5"/><rect x="313.4" y="136.8" width="4.4" height="4.4" class="l2" rx="5"/><rect x="365.3" y="119.3" width="4.4" height="4.4" class="l2" rx="5"/><rect x="417.2" y="101.8" width="4.4" height="4.4" class="l2" rx="5"/><rect x="469.1" y="84.3" width="4.4" height="4.4" class="l2" rx="5"/><rect x="521.0" y="66.8" width="4.4" height="4.4" class="l2" rx="5"/><rect x="572.9" y="49.3" width="4.4" height="4.4" class="l2" rx="5"/><rect x="601.8" y="31.8" width="4.4" height="4.4" class="l2" rx="5"/><polyline class="ln3" points="56.0,226.5 107.9,209.0 159.8,191.5 211.7,226.5 263.7,209.0 315.6,191.5 367.5,174.0 419.4,209.0 471.3,191.5 523.2,174.0 575.1,156.5 604.0,191.5"/><text class="lb l3" x="612.0" y="195.5">3 段</text><rect x="53.8" y="224.3" width="4.4" height="4.4" class="l3" rx="5"/><rect x="105.7" y="206.8" width="4.4" height="4.4" class="l3" rx="5"/><rect x="157.6" y="189.3" width="4.4" height="4.4" class="l3" rx="5"/><rect x="209.5" y="224.3" width="4.4" height="4.4" class="l3" rx="5"/><rect x="261.5" y="206.8" width="4.4" height="4.4" class="l3" rx="5"/><rect x="313.4" y="189.3" width="4.4" height="4.4" class="l3" rx="5"/><rect x="365.3" y="171.8" width="4.4" height="4.4" class="l3" rx="5"/><rect x="417.2" y="206.8" width="4.4" height="4.4" class="l3" rx="5"/><rect x="469.1" y="189.3" width="4.4" height="4.4" class="l3" rx="5"/><rect x="521.0" y="171.8" width="4.4" height="4.4" class="l3" rx="5"/><rect x="572.9" y="154.3" width="4.4" height="4.4" class="l3" rx="5"/><rect x="601.8" y="189.3" width="4.4" height="4.4" class="l3" rx="5"/></svg><figcaption>同一份语料（5,778 篇）用三种合并配置从空库插入。<b>关闭 automerge 时段只会单调堆积（12 段全在 0 层）</b>；默认配置下 0 层涨到 4~6 段就被增量合并到 1 层；crisismerge=4 让 0 层几乎不超过 3 段。数字为每次提交后读 %_data 结构记录所得。</figcaption></figure>
+<figure class="fig"><svg viewBox="0 0 720 400" role="img" aria-label="层级与段结构"><title>合并前后的段与层级结构</title><text class="lb" x="16.0" y="16.0">默认配置插入 5,778 篇后的真实结构（结构记录 36 字节，2 层 7 段，写计数器 731）</text><rect x="16.0" y="32.0" width="44.0" height="20.0" class="l1" rx="3" opacity="0.18"/><text class="ax mid" x="38.0" y="46.0" text-anchor="middle">L0</text><rect x="70.0" y="32.0" width="11.3" height="20.0" class="l3" rx="3"/><text class="cap" x="87.3" y="46.0">段 4 · 17 页</text><rect x="70.0" y="58.0" width="11.3" height="20.0" class="l3" rx="3"/><text class="cap" x="87.3" y="72.0">段 8 · 17 页</text><rect x="70.0" y="84.0" width="13.3" height="20.0" class="l3" rx="3"/><text class="cap" x="89.3" y="98.0">段 9 · 20 页</text><rect x="70.0" y="110.0" width="8.0" height="20.0" class="l3" rx="3"/><text class="cap" x="84.0" y="124.0">段 1 · 12 页</text><text class="cap" x="70.0" y="152.0">↑这 4 个 0 层段正处于「合并中」状态（结构记录里的 nMerge 字段）</text><rect x="16.0" y="170.0" width="44.0" height="20.0" class="l1" rx="3" opacity="0.18"/><text class="ax mid" x="38.0" y="184.0" text-anchor="middle">L1</text><rect x="70.0" y="170.0" width="146.7" height="20.0" class="l1" rx="3"/><text class="ax mid" x="143.3" y="184.0" text-anchor="middle">220 页</text><text class="cap" x="222.7" y="184.0">段 5 · 220 页</text><rect x="70.0" y="196.0" width="177.3" height="20.0" class="l1" rx="3"/><text class="ax mid" x="158.7" y="210.0" text-anchor="middle">266 页</text><text class="cap" x="253.3" y="210.0">段 3 · 266 页</text><rect x="70.0" y="222.0" width="86.7" height="20.0" class="l1" rx="3"/><text class="ax mid" x="113.3" y="236.0" text-anchor="middle">130 页</text><text class="cap" x="162.7" y="236.0">段 2 · 130 页</text><line class="gl" x1="16.0" y1="298.0" x2="700.0" y2="298.0"/><text class="lb" x="16.0" y="290.0">执行 optimize 之后（同一份数据：4 层 1 段，段被写到最高层 L3，索引 2.49 MB，645 页）</text><rect x="16.0" y="308.0" width="430.0" height="20.0" class="l1" rx="3"/><text class="ax mid" x="231.0" y="322.0" text-anchor="middle">645 页</text><text class="cap" x="452.0" y="322.0">（唯一段，归到 L3）</text><text class="cap" x="16.0" y="354.0">同一层内的段按「从旧到新」排列（格式注释：for each segment from oldest to newest）；</text><text class="cap" x="16.0" y="370.0">层号只决定合并策略怎么挑层；查询时所有层一起归并，层号不影响检索结果</text></svg><figcaption>上半部分是默认配置的真实结构：L0 是 4 个刚写入的小段，其中 <code>nMerge=4</code> 表示它们正在被增量合并；L1 是三个较大的历史段。下半部分是 <code>optimize</code> 之后：所有段归并成一个 645 页的大段。<b>「一堆不可变有序段 + 后台合并」正是 LSM 家族的核心思路，FTS5 的层级形状与 LSM 一致</b>。</figcaption></figure>
+  <p>同一份数据分别索引成 3 / 7 / 12 段后的查询耗时对比（每项 15 次中位数）：</p>
+<figure class="fig"><svg viewBox="0 0 720 300" role="img" aria-label="不同段总数下的查询耗时"><title>同样 5,778 篇文档、不同段总数下的查询耗时</title><line class="gl" x1="56.0" y1="228.0" x2="660.0" y2="228.0"/><text class="ax" x="48.0" y="232.0" text-anchor="end">0.0</text><line class="gl" x1="56.0" y1="179.5" x2="660.0" y2="179.5"/><text class="ax" x="48.0" y="183.5" text-anchor="end">0.1</text><line class="gl" x1="56.0" y1="131.0" x2="660.0" y2="131.0"/><text class="ax" x="48.0" y="135.0" text-anchor="end">0.2</text><line class="gl" x1="56.0" y1="82.5" x2="660.0" y2="82.5"/><text class="ax" x="48.0" y="86.5" text-anchor="end">0.3</text><line class="gl" x1="56.0" y1="34.0" x2="660.0" y2="34.0"/><text class="ax" x="48.0" y="38.0" text-anchor="end">0.4</text><line class="axl" x1="56.0" y1="228.0" x2="660.0" y2="228.0"/><text class="cap" x="48.0" y="22.0">查询耗时（毫秒）</text><rect x="56.0" y="8.0" width="12.0" height="8.0" class="l1" rx="2"/><text class="cap" x="74.0" y="16.0">3 段（crisismerge=4）</text><rect x="177.2" y="8.0" width="12.0" height="8.0" class="l3" rx="2"/><text class="cap" x="195.2" y="16.0">7 段（automerge=4）</text><rect x="298.4" y="8.0" width="12.0" height="8.0" class="l2" rx="2"/><text class="cap" x="316.4" y="16.0">12 段（关闭 automerge）</text><rect x="86.5" y="90.7" width="26.0" height="137.3" class="l1" rx="2"/><text class="cap mid" x="99.5" y="85.7" text-anchor="middle">0.283</text><rect x="118.5" y="83.5" width="26.0" height="144.5" class="l3" rx="2"/><text class="cap mid" x="131.5" y="78.5" text-anchor="middle">0.298</text><rect x="150.5" y="60.7" width="26.0" height="167.3" class="l2" rx="2"/><text class="cap mid" x="163.5" y="55.7" text-anchor="middle">0.345</text><text class="ax mid" x="131.5" y="246.0" text-anchor="middle">短语 &quot;pride and prejudice&quot;</text><rect x="237.5" y="187.3" width="26.0" height="40.7" class="l1" rx="2"/><text class="cap mid" x="250.5" y="182.3" text-anchor="middle">0.084</text><rect x="269.5" y="181.0" width="26.0" height="47.0" class="l3" rx="2"/><text class="cap mid" x="282.5" y="176.0" text-anchor="middle">0.097</text><rect x="301.5" y="171.3" width="26.0" height="56.7" class="l2" rx="2"/><text class="cap mid" x="314.5" y="166.3" text-anchor="middle">0.117</text><text class="ax mid" x="282.5" y="246.0" text-anchor="middle">布尔 whale AND ship</text><rect x="388.5" y="210.5" width="26.0" height="17.5" class="l1" rx="2"/><text class="cap mid" x="401.5" y="205.5" text-anchor="middle">0.036</text><rect x="420.5" y="202.8" width="26.0" height="25.2" class="l3" rx="2"/><text class="cap mid" x="433.5" y="197.8" text-anchor="middle">0.052</text><rect x="452.5" y="199.9" width="26.0" height="28.1" class="l2" rx="2"/><text class="cap mid" x="465.5" y="194.9" text-anchor="middle">0.058</text><text class="ax mid" x="433.5" y="246.0" text-anchor="middle">词元前缀 marri*</text><rect x="539.5" y="209.6" width="26.0" height="18.4" class="l1" rx="2"/><text class="cap mid" x="552.5" y="204.6" text-anchor="middle">0.038</text><rect x="571.5" y="206.7" width="26.0" height="21.3" class="l3" rx="2"/><text class="cap mid" x="584.5" y="201.7" text-anchor="middle">0.044</text><rect x="603.5" y="202.3" width="26.0" height="25.7" class="l2" rx="2"/><text class="cap mid" x="616.5" y="197.3" text-anchor="middle">0.053</text><text class="ax mid" x="584.5" y="246.0" text-anchor="middle">常用词 elizabeth</text><text class="cap" x="358.0" y="266.0" text-anchor="middle">同一批数据分别索引成 3 / 7 / 12 段（只改合并配置）</text></svg><figcaption>查询要同时归并所有段，<b>段越多，每次翻页要合并的迭代器越多</b>。12 段配置的短语查询 0.345 ms，3 段配置 0.283 ms（差 22%）；数据来自同一份 5,778 篇语料、同一个 %_data 页数级别的库，取 15 次中位数。</figcaption></figure>
+
+  <h3>optimize 前后：空间与时间账</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>指标</th><th class="num">optimize 前</th><th class="num">optimize 后</th></tr></thead>
+<tbody><tr><td>段数（按层）</td><td class="num">7 / 4</td><td class="num">0 / 0 / 0 / 0 / 1</td></tr>
+<tr><td>索引字节</td><td class="num">2.66 MB</td><td class="num">2.49 MB</td></tr>
+<tr><td>索引页数</td><td class="num">701</td><td class="num">659</td></tr>
+<tr><td>短语查询</td><td class="num">0.710 ms</td><td class="num">0.590 ms</td></tr>
+<tr><td>常用词查询</td><td class="num">0.210 ms</td><td class="num">0.180 ms</td></tr>
+<tr><td>前缀查询</td><td class="num">0.120 ms</td><td class="num">0.100 ms</td></tr>
+<tr><td>rank 排序 top10</td><td class="num">2.210 ms</td><td class="num">2.150 ms</td></tr>
+<tr><td>数据库文件</td><td class="num">6.75 MB</td><td class="num">9.12 MB</td></tr></tbody>
+</table></div>
+  <div class="note"><b>注意文件变大了</b>：optimize 是「先写新段、再删旧段」，6.75 → 9.12 MB 的增长来自写新段后的空闲页（2.62 MB）。这些页会被后续写入复用；想立刻还给文件系统需要 <code>VACUUM</code>（实测降回
+   6.39 MB）。</div>
+</section>
+
+<section id="space">
+  <h2><span class="n">08</span>空间与能力取舍：一张表选配置</h2>
+  <p class="sub">每个选项都在「索引体积」和「能做的查询」之间换。下表是同一份 5,778 篇语料 8 种配置的实测。</p>
+<figure class="fig"><svg viewBox="0 0 720 400" role="img" aria-label="各配置的文件字节构成"><title>各配置下数据库文件的字节构成</title><text class="cap" x="8.0" y="14.0">条形 = VACUUM 后的文件大小，按用途拆分（MB）</text><rect x="300.0" y="8.0" width="11.0" height="8.0" class="l1" rx="2"/><text class="cap" x="316.0" y="15.0">倒排索引 %_data</text><rect x="404.6" y="8.0" width="11.0" height="8.0" class="l3" rx="2"/><text class="cap" x="420.6" y="15.0">正文副本 %_content</text><rect x="529.0" y="8.0" width="11.0" height="8.0" class="l2" rx="2"/><text class="cap" x="545.0" y="15.0">其它（页开销/前缀索引表/空闲）</text><text class="ax" x="8.0" y="50.0">默认 detail=full</text><rect x="176.0" y="38.0" width="71.6" height="16.0" class="l1" rx="3"/><rect x="247.6" y="38.0" width="94.3" height="16.0" class="l3" rx="0"/><rect x="341.9" y="38.0" width="17.9" height="16.0" class="l2" rx="3"/><text class="cap" x="365.7" y="50.0">索引 2.49 ｜合计 6.39</text><text class="ax" x="8.0" y="90.0">detail=column</text><rect x="176.0" y="78.0" width="41.7" height="16.0" class="l1" rx="3"/><rect x="217.7" y="78.0" width="94.3" height="16.0" class="l3" rx="0"/><rect x="312.0" y="78.0" width="17.5" height="16.0" class="l2" rx="3"/><text class="cap" x="335.5" y="90.0">索引 1.45 ｜合计 5.34</text><text class="ax" x="8.0" y="130.0">detail=none</text><rect x="176.0" y="118.0" width="17.8" height="16.0" class="l1" rx="3"/><rect x="193.8" y="118.0" width="94.3" height="16.0" class="l3" rx="0"/><rect x="288.0" y="118.0" width="16.8" height="16.0" class="l2" rx="3"/><text class="cap" x="310.9" y="130.0">索引 0.62 ｜合计 4.48</text><text class="ax" x="8.0" y="170.0">detail=none + columnsize=0</text><rect x="176.0" y="158.0" width="17.8" height="16.0" class="l1" rx="3"/><rect x="193.8" y="158.0" width="94.3" height="16.0" class="l3" rx="0"/><rect x="288.0" y="158.0" width="15.0" height="16.0" class="l2" rx="3"/><text class="cap" x="309.1" y="170.0">索引 0.62 ｜合计 4.42</text><text class="ax" x="8.0" y="210.0">prefix=&#x27;2 3&#x27; 前缀索引</text><rect x="176.0" y="198.0" width="171.2" height="16.0" class="l1" rx="3"/><rect x="347.2" y="198.0" width="94.3" height="16.0" class="l3" rx="0"/><rect x="441.5" y="198.0" width="19.6" height="16.0" class="l2" rx="3"/><text class="cap" x="467.1" y="210.0">索引 5.95 ｜合计 9.91</text><text class="ax" x="8.0" y="250.0">contentless-delete（不存正文）</text><rect x="176.0" y="238.0" width="71.6" height="16.0" class="l1" rx="3"/><rect x="247.6" y="238.0" width="0.0" height="16.0" class="l3" rx="0"/><rect x="247.6" y="238.0" width="4.0" height="16.0" class="l2" rx="3"/><text class="cap" x="257.6" y="250.0">索引 2.49 ｜合计 2.63</text><text class="ax" x="8.0" y="290.0">external content（正文在用户表）</text><rect x="176.0" y="278.0" width="71.6" height="16.0" class="l1" rx="3"/><rect x="247.6" y="278.0" width="0.0" height="16.0" class="l3" rx="0"/><rect x="247.6" y="278.0" width="112.8" height="16.0" class="l2" rx="3"/><text class="cap" x="366.4" y="290.0">索引 2.49 ｜合计 6.41</text><text class="ax" x="8.0" y="330.0">trigram 分词</text><rect x="176.0" y="318.0" width="265.0" height="16.0" class="l1" rx="3"/><rect x="441.0" y="318.0" width="90.4" height="16.0" class="l3" rx="0"/><rect x="531.5" y="318.0" width="20.5" height="16.0" class="l2" rx="3"/><text class="cap" x="558.0" y="330.0">索引 9.21 ｜合计 13.07</text><line class="gl" x1="176.0" y1="334.0" x2="664.0" y2="334.0"/></svg><figcaption>语料 3,295,791 字符（3.14 MB）。<b>索引本体 2.49 MB 只占文件 6.39 MB 的 39%</b>：detail=full 的默认配置还要存一份正文副本（3.28 MB）和每行 token 数（12 KB）。砍掉位置信息的 detail=none 把索引压到 0.62 MB（默认的 25%）；trigram 把任意 3 字符组合都建索引，索引涨到 9.21 MB（3.7 倍）。</figcaption></figure>
+<div class="tblwrap"><table>
+<thead><tr><th>配置</th><th class="num">索引 MB</th><th class="num">正文副本 MB</th><th class="num">优化后文件 MB</th><th class="num">VACUUM 后文件 MB</th><th class="num">空闲页 MB</th><th>备注</th></tr></thead>
+<tbody><tr><td>默认 detail=full</td><td class="num">2.49</td><td class="num">3.28</td><td class="num">9.02</td><td class="num">6.39</td><td class="num">2.62</td><td></td></tr>
+<tr><td>detail=column</td><td class="num">1.45</td><td class="num">3.28</td><td class="num">6.39</td><td class="num">5.34</td><td class="num">1.05</td><td></td></tr>
+<tr><td>detail=none</td><td class="num">0.62</td><td class="num">3.28</td><td class="num">5.23</td><td class="num">4.48</td><td class="num">0.75</td><td></td></tr>
+<tr><td>detail=none+columnsize=0</td><td class="num">0.62</td><td class="num">3.28</td><td class="num">5.16</td><td class="num">4.42</td><td class="num">0.75</td><td></td></tr>
+<tr><td>prefix='2 3'</td><td class="num">5.95</td><td class="num">3.28</td><td class="num">14.09</td><td class="num">9.91</td><td class="num">4.17</td><td></td></tr>
+<tr><td>contentless-delete</td><td class="num">2.49</td><td class="num">0.00</td><td class="num">5.26</td><td class="num">2.63</td><td class="num">2.62</td><td></td></tr>
+<tr><td>external content</td><td class="num">2.49</td><td class="num">0.00</td><td class="num">9.04</td><td class="num">6.41</td><td class="num">2.62</td><td>用户表 books 另占 3.28 MB（不在本行的 %_content 里）</td></tr>
+<tr><td>trigram（只索引 body）</td><td class="num">9.21</td><td class="num">3.14</td><td class="num">17.16</td><td class="num">13.07</td><td class="num">4.09</td><td>只索引 body 列；正文 3.14 MB 也计在 %_content</td></tr></tbody>
+</table></div>
+  <p>三条经验：</p>
+  <ul class="tight">
+    <li><b>位置信息最贵</b>：detail 从 full → column → none，索引 2.49 → 1.45 → 0.62 MB，代价是短语/NEAR 从「可用」直接变成「报错」。</li>
+    <li><b>正文副本也贵</b>：默认模式要在 <code>%_content</code> 里再存一份正文（3.28 MB）。已经有主表时，用 <code>content='主表'</code> 让 FTS5 去读主表：索引只占 2.49 MB，整个文件是「已有的正文表 3.92 MB + 索引」共 6.41 MB ——代价是索引一致性要自己负责（触发器）。</li>
+    <li><b>trigram 是「子串自由」的代价</b>：只在 body 一列上，索引就有 9.21 MB ——是这一列正文（3.14 MB）的 2.9 倍，换来任意≥3 字符子串查询与 LIKE/GLOB 走索引。</li>
+  </ul>
+</section>
+
+<section id="cjk">
+  <h2><span class="n">09</span>分词器：实测词表与中文的坑</h2>
+  <p class="sub">分词器决定「什么算一个词元」，它直接决定索引体积和能查到什么。以下都是 <code>fts5vocab</code> 读出的真实索引词条。</p>
+<div class="tblwrap"><table>
+<thead><tr><th>分词器</th><th>同一批输入产生的索引词条（fts5vocab 实测）</th></tr></thead>
+<tbody><tr><td><code>unicode61</code>（默认）</td><td><code>123abc | 14 | 2026 | 3 | bar | cafe | foo | hello | naive | resume | world | 上海自来水来自海上 | 北京 | 東京タワー | 서울특별시</code></td></tr>
+<tr><td><code>unicode61 remove_diacritics 0</code></td><td><code>123abc | 14 | 2026 | 3 | bar | café | foo | hello | naïve | résumé | world | 上海自来水来自海上 | 北京 | 東京タワー | 서울특별시</code></td></tr>
+<tr><td><code>unicode61 tokenchars '-_'</code></td><td><code>123abc | 14 | 2026 | 3 | café | foo_bar | hello-world | naïve | résumé | 上海自来水来自海上 | 北京 | 東京タワー | 서울특별시</code></td></tr>
+<tr><td><code>ascii</code></td><td><code>123abc | 14 | 2026 | 3 | bar | cafÉ | café | foo | hello | naïve | résumé | world | 上海自来水来自海上 | 北京 | 東京タワー | 서울특별시</code></td></tr>
+<tr><td><code>porter</code></td><td><code>123abc | 14 | 2026 | 3 | bar | cafe | foo | hello | naiv | resum | world | 上海自来水来自海上 | 北京 | 東京タワー | 서울특별시</code></td></tr>
+<tr><td><code>trigram</code></td><td><code> 12 |  20 |  3. |  ca |  fo |  na |  ré |  北京 |  서울 | -wo | .14 | 026 | 123 | 202 | 23a | 3.1 | 3ab | _ba | abc | afé | ar  | aïv | bar | bc  | c 3 | caf | d f | e r | ell | foo | fé  | hel | ld  | llo | lo- | naï | o-w | o_b | oo_ | orl | r 1 | rld | rés | sum | umé | ve  | wor | é c | é n | ésu | ïve | タワー | ワー  | ー 서 | 上海自 | 京 2 | 京タワ | 北京  | 来水来 | 来自海 | 東京タ | 水来自 | 海自来 | 自来水 | 自海上 | 별시  | 서울특 | 시 北 | 울특별 | 특별시</code></td></tr></tbody>
+</table></div>
+
+  <h3>9.1 中文：默认分词器会把整段汉字连成一个词元</h3>
+  <p>这是本页最值得记住的一条。往 <code>unicode61</code> 表里插入 <code>上海自来水来自海上</code>，索引里得到的是
+     <b>一个词元</b>：<code>上海自来水来自海上</code>（因为连续的非分隔符字符算一个词元，而汉字不是分隔符）。于是大部分中文查询都查不到：</p>
+<div class="tblwrap"><table>
+<thead><tr><th>表（分词器）</th><th>查询</th><th class="num">命中行数</th></tr></thead>
+<tbody><tr><td>unicode61 default</td><td><code>上海</code></td><td class="num">0</td></tr>
+<tr><td>unicode61 default</td><td><code>上海自来水来自海上</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>海自</code></td><td class="num">0</td></tr>
+<tr><td>unicode61 default</td><td><code>&quot;上海自来水&quot;</code></td><td class="num">0</td></tr>
+<tr><td>trigram</td><td><code>上海</code></td><td class="num">0</td></tr>
+<tr><td>trigram</td><td><code>上海自来水来自海上</code></td><td class="num">1</td></tr>
+<tr><td>trigram</td><td><code>海自</code></td><td class="num">0</td></tr>
+<tr><td>trigram</td><td><code>&quot;上海自来水&quot;</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>cafe</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>café</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>CAFE</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>hello</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>world</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>foo_bar</code></td><td class="num">1</td></tr>
+<tr><td>unicode61 default</td><td><code>foobar</code></td><td class="num">0</td></tr></tbody>
+</table></div>
+  <p>换 <code>trigram</code> 之后，同一个句子被切成「上海自 / 海自来 / 来水来…」这些三元组，任意≥3 个字符的子串就能命中（<code>海自</code> 这种 2 字符查询仍然不行——少于 3 字符的查询没有可用的三元组）。</p>
+  <div class="note"><b>中文检索怎么选</b>：<code>trigram</code> 开箱可用、支持子串，代价是索引约 3.7 倍；需要词级切分（「北京大学」当成一个词）就得上 ICU 分词器或自定义分词器（<code>fts5_api.xCreateTokenizer</code>）。纯英文场景用 <code>porter</code> 做词干归一，中文/日文用 trigram 或 ICU，不要对 CJK 用默认 unicode61。</div>
+
+  <h3>9.2 大小写、变音、词干、标点</h3>
+<div class="tblwrap"><table>
+<thead><tr><th>分词器</th><th>输入</th><th>该行产生的词条</th></tr></thead>
+<tbody><tr><td>unicode61</td><td>拉丁重音</td><td><code>cafe / naive / resume</code></td></tr>
+<tr><td>unicode61</td><td>标点与下划线</td><td><code>123abc / 14 / 3 / bar / foo / hello / world</code></td></tr>
+<tr><td>unicode61</td><td>中文</td><td><code>上海自来水来自海上</code></td></tr>
+<tr><td>trigram</td><td>拉丁重音</td><td><code> ca /  na /  ré / afé / aïv / caf / e r / fé  / naï / rés / sum / umé / ve  / é c / é n / ésu / ïve</code></td></tr>
+<tr><td>trigram</td><td>标点与下划线</td><td><code> 12 /  3. /  fo / -wo / .14 / 123 / 23a / 3.1 / 3ab / _ba / abc / ar  / bar / bc  / c 3 / d f / ell / foo / hel / ld  / llo / lo- / o-w / o_b / oo_ / orl / r 1 / rld / wor</code></td></tr>
+<tr><td>trigram</td><td>中文</td><td><code>上海自 / 来水来 / 来自海 / 水来自 / 海自来 / 自来水 / 自海上</code></td></tr>
+<tr><td>porter</td><td>拉丁重音</td><td><code>cafe / naiv / resum</code></td></tr>
+<tr><td>porter</td><td>标点与下划线</td><td><code>123abc / 14 / 3 / bar / foo / hello / world</code></td></tr>
+<tr><td>porter</td><td>中文</td><td><code>上海自来水来自海上</code></td></tr></tbody>
+</table></div>
+<div class="tblwrap"><table>
+<thead><tr><th>项目</th><th>结果</th><th>对照</th></tr></thead>
+<tbody><tr><td>输入文本</td><td><code>corrections corrected correcting correction connection connected connecting running runs ran studies studied</code></td><td></td></tr>
+<tr><td><code>porter</code> 索引词条</td><td><code>connect | correct | ran | run | studi</code></td><td></td></tr>
+<tr><td><code>unicode61</code> 索引词条</td><td><code>connected | connecting | connection | corrected | correcting | correction | corrections | ran | running | runs | studied | studies</code></td><td></td></tr>
+<tr><td><code>MATCH 'correct'</code></td><td>porter 命中</td><td>unicode61 不命中</td></tr>
+<tr><td><code>MATCH 'study'</code></td><td>porter 命中</td><td>unicode61 不命中</td></tr>
+<tr><td><code>MATCH 'run'</code></td><td>porter 命中</td><td>unicode61 不命中</td></tr></tbody>
+</table></div>
+</section>
+
+<section id="practice">
+  <h2><span class="n">10</span>实战清单</h2>
+  <p class="sub">每条都能在上文找到依据。</p>
+  <ol class="tight">
+    <li><b>批量写、单事务提交</b>：事务内的词先攒在内存哈希里，提交时排序落段（实测落成 0 层 4 段 + 1 层 1 段）；逐条提交让同样数据慢 218×（实测 0.092 s → 20.10 s）。</li>
+    <li><b>按 rowid 递增顺序插入</b>：哈希表遇到行号回退会提前刷盘，乱序写入会多出小段。</li>
+    <li><b>别在 CREATE 里写 automerge/crisismerge/hashsize/pgsz</b>：报 <code>unrecognized option</code>，要用
+        <code>INSERT INTO ft(ft, rank) VALUES('automerge', 8)</code>。</li>
+    <li><b>大批导入后跑一次 <code>optimize</code></b>：段数 7 / 4 → 0 / 0 / 0 / 0 / 1，短语查询 0.710 → 0.590 ms；之后如果在意磁盘占用可以 <code>VACUUM</code>。</li>
+    <li><b>长文本用 <code>content='主表'</code>（external content）+ 触发器</b>：省掉一份正文副本；记得
+        <code>INSERT INTO ft(ft) VALUES('rebuild')</code> 可在不一致时重建。</li>
+    <li><b>只要「哪些文档包含这些词」，用 <code>detail=none</code></b>：索引体积降到 25%，但别指望短语查询。</li>
+    <li><b>前缀搜索多就加 <code>prefix='2 3'</code></b>，只在「短前缀查询频繁」时才值得（体积×2.4）。</li>
+    <li><b>模糊/子串/LIKE 需求用 <code>trigram</code></b>，注意 2 字符查询无效、索引约 3.7 倍。</li>
+    <li><b>中文用 trigram 或 ICU</b>，默认 <code>unicode61</code> 对 CJK 等于「整段一个词」。</li>
+    <li><b>默认搜索所有列</b>；要限定列写 <code>MATCH '{body} : 词'</code>，否则书名/标题里的词会污染结果集（实测 whale 从 610 篇变成 1,614 篇）。</li>
+    <li><b>排序用 <code>ORDER BY rank</code></b>（等价于 <code>bm25()</code> 的负分），但记得排序有成本，候选多时先 <code>LIMIT</code> 或加列过滤缩小集合。</li>
+    <li><b>定期自检</b>：<code>INSERT INTO ft(ft, rank) VALUES('integrity-check', 1)</code> 会重算并比对索引与正文的一致性。</li>
+  </ol>
+</section>
+
+<section id="sources">
+  <h2><span class="n">11</span>数据来源与复现</h2>
+  <p class="sub">本页两类内容：SQLite 官方文档/源码里的事实，以及本机实测数字。实测环境与复现方式见下表。</p>
+  <div class="tblwrap">
+  <table>
+    <thead><tr><th>内容</th><th>来源 / 复现方式</th></tr></thead>
+    <tbody>
+      <tr><td>FTS5 的功能与选项：查询语法（短语/前缀/NEAR/列过滤/布尔）、tokenize 参数、<code>prefix</code>、
+          <code>content</code>/<code>contentless_delete</code>、<code>columnsize</code>、<code>detail</code> 三档与其限制、实测报错原文、bm25 定义</td>
+          <td>SQLite 官方文档 <i>SQLite FTS5 Extension</i><br>
+          <a href="https://sqlite.org/fts5.html">https://sqlite.org/fts5.html</a>（本页所有选项语义以此为准）</td></tr>
+      <tr><td>二进制格式：<code>%_data</code> 的 6 类记录、结构记录字段顺序、叶页与页尾布局、doclist/poslist/collist 编码、
+          doclist 索引、墓碑页、行号位域宏 <code>fts5_dri()</code>、擂台树 <code>aFirst[]</code></td>
+          <td>SQLite 源码 <code>ext/fts5/fts5_index.c</code> 头部注释与实现（本页解码器即按该规范实现）<br>
+          <a href="https://sqlite.org/src/file/ext/fts5/fts5_index.c">https://sqlite.org/src/file/ext/fts5/fts5_index.c</a></td></tr>
+      <tr><td>默认值与硬限制：<code>pgsz=4050</code>、<code>hashsize=1MB</code>、<code>automerge=4</code>、
+          <code>crisismerge=16</code>、<code>usermerge=4</code>、删除合并 10%、<code>FTS5_WORK_UNIT=64</code>、
+          <code>FTS5_OPT_WORK_UNIT=1000</code>、<code>FTS5_MAX_SEGMENT=2000</code>、<code>FTS5_MAX_LEVEL=64</code>、
+          <code>FTS5_MAX_PREFIX_INDEXES=31</code>、<code>FTS5_MAX_TOKEN_SIZE=32768</code></td>
+          <td><code>ext/fts5/fts5_config.c</code>、<code>fts5Int.h</code>、<code>fts5_index.c</code><br>
+          <a href="https://sqlite.org/src/file/ext/fts5/fts5_config.c">https://sqlite.org/src/file/ext/fts5/fts5_config.c</a></td></tr>
+      <tr><td>bm25 实现细节：<code>k1=1.2</code>、<code>b=0.75</code>、IDF 公式、<code>idf&lt;=0</code> 时取 <code>1e-6</code>、用 <code>xColumnSize()</code> 取 |D|、返回负分</td>
+          <td><code>ext/fts5/fts5_aux.c</code>（函数 <code>fts5Bm25Function</code>）<br>
+          <a href="https://sqlite.org/src/file/ext/fts5/fts5_aux.c">https://sqlite.org/src/file/ext/fts5/fts5_aux.c</a></td></tr>
+      <tr><td>短语验证算法（<code>iPos+i</code> 归并）、位置与列号打包、<code>ORDER BY rank</code> 的 <code>Fts5Sorter</code></td>
+          <td><code>ext/fts5/fts5_expr.c</code>（<code>fts5ExprPhraseIsMatch</code>）、<code>fts5_main.c</code>、<code>fts5_buffer.c</code></td></tr>
+      <tr><td>本页全部实测数字：索引/正文/文件字节、段与层分布、查询耗时（中位数）、事务对比、前缀索引对照、分词器词表、中文查询行为、结构与叶页解码、bm25 对账</td>
+          <td>本机实测：Python 3.13 的 <code>sqlite3</code>（SQLite 3.53.4，启用 FTS5 / fts5vocab / dbstat），
+          Linux x86_64。脚本流程：建库→提交批次→读 <code>%_data</code> 结构记录与段页→自己写变长整数/页解码器→与 <code>fts5vocab</code> 交叉验证→ <code>PRAGMA page_count / freelist_count</code> 记空间→每项查询 7~15 次取中位数。</td></tr>
+      <tr><td>语料：5 本公有领域英文小说（Frankenstein、Great Expectations、Moby Dick、Pride and Prejudice、The Adventures of Sherlock Holmes），按空行切段、每段≥200 字符，共 5,778 篇文档 / 3,295,791 字符</td>
+          <td>Project Gutenberg 公有领域文本（<a href="https://www.gutenberg.org/">gutenberg.org</a>）；本页只使用统计数据，不转载正文</td></tr>
+      <tr><td>测试表定义：<code>fts5(book, body)</code> 两列；样本小库 <code>fts5(title, body)</code> 6 篇文档</td>
+          <td>本页自建，DDL 见第 03、04 节代码块</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="sub">说明：耗时数据来自单机、单进程、页缓存已预热的测量，量级与相对关系可复现，绝对值随机器不同。语料为英文小说，中文行为由第 09 节的小样本单独验证。</p>
+</section>
+
+</main>
+
+<footer>
+  <p>本页自包含（无外部字体、脚本、图片依赖），所有数字由实测数据计算后写入，未手工填写。</p>
+  <p>内容库：<a href="https://github.com/argsno/public-pages">github.com/argsno/public-pages</a></p>
+</footer>
+
+</div>
+</body>
+</html>
