@@ -235,14 +235,26 @@ sqlite> SELECT id, length(block) FROM demo_data;
   <h3>%_data 的行号是一个打包的位域</h3>
   <p>倒排索引不是独立文件，而是 <code>%_data</code> 这张表的若干行。<code>id</code> 这个整数被按位切分存储「哪个段的第几页」，由宏 <code>fts5_dri()</code> 生成，位宽写在 <code>fts5_index.c</code> 里：</p>
 <div class="tblwrap"><table>
-<thead><tr><th>位段</th><th>宽度</th><th>含义</th></tr></thead>
-<tbody><tr><td>63..48 段 id</td><td>16 位</td><td>段编号，1~65535，删除后可复用</td></tr>
-<tr><td>47 文档列表索引位</td><td>1 位</td><td>1 = 这一行属于 doclist 索引，0 = 段页</td></tr>
-<tr><td>46..42 索引树高度</td><td>5 位</td><td>doclist 索引自己的层数</td></tr>
-<tr><td>41..0 页号</td><td>31 位</td><td>段内第几页，从 1 开始</td></tr></tbody>
+<thead><tr><th>位段（bit 从高到低）</th><th>宽度</th><th>含义</th></tr></thead>
+<tbody><tr><td>30..0 页号</td><td>31 位</td><td>段内第几页，从 1 开始；上限 FTS5_MAX_PGNO = 0x7FFFFF00</td></tr>
+<tr><td>35..31 索引树高度</td><td>5 位</td><td>doclist 索引（dlidx）自己的层数，最多 32 层</td></tr>
+<tr><td>36 文档列表索引位</td><td>1 位</td><td>1 = 这一行是 doclist 索引页，0 = 段叶页</td></tr>
+<tr><td>52..37 段 id</td><td>16 位</td><td>段编号，1~65535，删除后 id 可复用</td></tr>
+<tr><td>53 墓碑页位</td><td>1 位</td><td>1 = 墓碑哈希页；只在 contentless_delete=1 的表里出现</td></tr>
+<tr><td>63..54</td><td>10 位</td><td>空着不用——保证 rowid 是正数（bit63 是符号位）</td></tr></tbody>
 </table></div>
+  <p>各字段的宽度不是随手定的，源码里就是四个独立常量（<code>FTS5_DATA_PAGE_B=31</code>、<code>HEIGHT_B=5</code>、
+     <code>DLI_B=1</code>、<code>ID_B=16</code>）。<b>为什么页号是 31 位？</b>三个理由：</p>
+  <ul class="tight">
+    <li><b>够用且不浪费</b>：31 位 = 2,147,483,648 个页码；按默认 4050 字节的叶页算，单个段最多约
+        <b>7.9 TB</b>。源码注释直接写着「不可能造出这么大的库」，所以再宽纯属浪费位。</li>
+    <li><b>它要能装进 C 的 <code>int</code></b>：源码把页号存在 <code>int pgnoFirst / pgnoLast / iLeafPgno</code> 里，
+        31 位（≤ 0x7FFFFFFF）刚好保证按位取出后永远是正数；32 位就会有符号问题。</li>
+    <li><b>高位留空双保险</b>：整包只用了 54 位，<code>63..54</code> 空着，<code>bit63</code>（符号位）永远是 0，
+        rowid 始终为正——对 <code>INTEGER PRIMARY KEY</code> 和 1 / 10 这两个保留小号都很友好；另外页号还有一道哨兵上限 <code>FTS5_MAX_PGNO = 0x7FFFFF00</code>（比 2³¹ 小 256），读到更大的值直接判为损坏。</li>
+  </ul>
   <p>本页 demo 库里那个 911 字节的段页，<code>id</code> 正是 <code>137438953473</code>：
-     <code>137438953473 = (1 &lt;&lt; 37) + 1</code>，即段 id=1、非索引页、高度 0、页号 1；库里的 <code>%_data</code> 一共只有 3 行（id=1、10 和它）有序号 1、10 的特殊行留给「平均值记录」和「结构记录」，其余全部是段页与 doclist 索引页。</p>
+     <code>137438953473 = (1 &lt;&lt; 37) + 1</code>，即段 id=1、类型=段叶页、高度 0、页号 1；有序号 1、10 的特殊行留给「平均值记录」和「结构记录」，其余全部是段页与 doclist 索引页。</p>
 </section>
 
 <section id="write">
