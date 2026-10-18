@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2026 诺贝尔经济学奖 ｜ 霍尔与伍德福德：宏观稳定政策的微观基础</title>
+<meta name="description" content="深入浅出讲清 2026 年诺贝尔经济学奖：罗伯特·E·霍尔与迈克尔·伍德福德的生平、核心贡献（消费随机游走、80% 前瞻与 20% 手到口、新凯恩斯三方程模型、零利率下限与央行沟通）、三方程模型怎么读、政策落地与模型争议，以及对个人的九条启示。含时间线图、实证数据图与完整来源。">
+
+<style>
+  :root{
+    --bg:#fbfaf8;--fg:#1c1b1a;--muted:#6b6862;--border:#e6e2db;--card:#fff;
+    --accent:#1f4f8f;--accent-soft:#eef2f8;--code:#f3f0eb;--ok:#2f6f4f;--warn:#9a6a12;--alt:#8a5a2b;
+    --radius:10px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{--bg:#141413;--fg:#eceae6;--muted:#9c988e;--border:#312f2c;--card:#1c1b1a;
+      --accent:#8fb6e8;--accent-soft:#161d28;--code:#252422;--ok:#6fbf94;--warn:#d9ad57;--alt:#d9a05b;}
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+  body{margin:0;background:var(--bg);color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Noto Sans JP","PingFang SC","Microsoft YaHei",sans-serif;
+    font-size:16px;line-height:1.78}
+  .wrap{max-width:900px;margin:0 auto;padding:0 20px}
+  .back{display:inline-block;margin:22px 0 0;font-size:13.5px}
+  header.hero{padding:10px 0 30px;border-bottom:1px solid var(--border)}
+  .kicker{font-size:13px;letter-spacing:.16em;color:var(--muted);margin:0 0 12px;text-transform:uppercase}
+  h1{font-size:clamp(30px,6vw,46px);line-height:1.14;margin:0;font-weight:700;letter-spacing:.01em}
+  h1 small{display:block;font-size:15px;font-weight:400;letter-spacing:0;color:var(--muted);margin-top:12px}
+  .lede{font-size:17px;color:var(--muted);margin:14px 0 0;max-width:64ch}
+  nav.toc{margin:18px 0 0;padding:14px 0 0;border-top:1px solid var(--border);font-size:14px;display:flex;gap:8px;flex-wrap:wrap}
+  nav.toc a{border:1px solid var(--border);background:var(--card);border-radius:999px;padding:4px 12px;text-decoration:none}
+  main{padding:0 0 60px}
+  section{padding:38px 0 10px;border-top:1px solid var(--border)}
+  section:first-of-type{border-top:none;padding-top:24px}
+  h2{font-size:23px;margin:0 0 4px;letter-spacing:-.01em}
+  h2 .n{color:var(--accent);font-variant-numeric:tabular-nums;margin-right:10px}
+  h3{font-size:16.5px;margin:26px 0 6px}
+  h4{font-size:15px;margin:20px 0 4px;color:var(--muted);font-weight:600}
+  p{margin:11px 0}
+  .sub{color:var(--muted);font-size:15px;margin:0 0 16px}
+  a{color:var(--accent);text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--accent) 35%,transparent)}
+  a:hover{border-bottom-color:var(--accent)}
+  ul,ol{margin:10px 0;padding-left:22px}
+  li{margin:5px 0}
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin:18px 0 6px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:13px 15px}
+  .card .k{font-size:12px;color:var(--muted);letter-spacing:.04em}
+  .card .v{font-size:19px;font-weight:700;margin:4px 0 2px;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .card .d{font-size:12.5px;color:var(--muted);line-height:1.55}
+  .tldr{background:var(--accent-soft);border:1px solid var(--border);border-left:3px solid var(--accent);
+        border-radius:var(--radius);padding:15px 20px;margin:18px 0 8px}
+  .tldr h3{margin:0 0 8px;font-size:15px}
+  .tldr ul{margin:0;padding-left:20px}
+  .tldr li{margin:5px 0}
+  .note{border-left:3px solid var(--warn);background:color-mix(in srgb,var(--warn) 7%,var(--card));
+        border-radius:var(--radius);padding:12px 16px;margin:16px 0;font-size:14.5px}
+  .tblwrap{overflow-x:auto;margin:16px 0;border:1px solid var(--border);border-radius:var(--radius);background:var(--card)}
+  table{border-collapse:collapse;width:100%;font-size:14.5px;min-width:520px}
+  th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+  thead th{background:color-mix(in srgb,var(--fg) 4%,var(--card));font-weight:600;font-size:13px;letter-spacing:.02em;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  tbody tr:hover{background:color-mix(in srgb,var(--accent) 4%,transparent)}
+  td.num,th.num{font-variant-numeric:tabular-nums;white-space:nowrap}
+  td.yr{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--muted)}
+  code,pre{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,"DejaVu Sans Mono",monospace}
+  code{background:var(--code);padding:1px 6px;border-radius:5px;font-size:.9em}
+  pre{background:var(--code);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;
+      overflow-x:auto;font-size:13.5px;line-height:1.7;margin:16px 0}
+  .fig{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px 6px;margin:18px 0}
+  .fig svg{width:100%;height:auto;display:block}
+  .fig figcaption{font-size:12.5px;color:var(--muted);margin:6px 0 4px;line-height:1.6}
+  svg text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}
+  svg .cap{font-size:12px;fill:var(--muted)}
+  svg .cap.mid{text-anchor:middle}
+  svg .ax{font-size:11px;fill:var(--muted);text-anchor:end}
+  svg .ax.mid{text-anchor:middle}
+  svg .tyr{font-size:15px;font-weight:700;fill:var(--accent);text-anchor:middle;font-variant-numeric:tabular-nums}
+  svg .ttl{font-size:12.5px;font-weight:600;fill:var(--fg)}
+  svg .ttl.mid{text-anchor:middle}
+  svg .tds{font-size:11px;fill:var(--muted)}
+  svg .tds.mid{text-anchor:middle}
+  svg .rl{font-size:12.5px;fill:var(--fg)}
+  svg .rl.end{text-anchor:end}
+  svg .vl{font-size:12.5px;font-weight:700;fill:var(--fg);font-variant-numeric:tabular-nums}
+  svg .gl{stroke:color-mix(in srgb,var(--fg) 12%,transparent);stroke-width:1}
+  svg .axl{stroke:var(--border);stroke-width:1.5}
+  svg .tick{stroke:var(--accent);stroke-width:1.5}
+  svg .stem{stroke:color-mix(in srgb,var(--accent) 45%,transparent);stroke-width:1}
+  svg .dot{fill:var(--accent)}
+  svg .bar-theory{fill:color-mix(in srgb,var(--muted) 45%,transparent)}
+  svg .bar-emp{fill:color-mix(in srgb,var(--accent) 70%,transparent)}
+  footer{border-top:1px solid var(--border);padding:22px 0 40px;color:var(--muted);font-size:13.5px}
+  footer p{margin:6px 0}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+<a class="back" href="../">← 返回目录</a>
+
+<header class="hero">
+  <p class="kicker">2026 诺贝尔经济学奖 · 深入浅出</p>
+  <h1>霍尔与伍德福德：把「稳定经济」这件事，重新造了一遍<small>2026 年瑞典央行纪念诺贝尔经济学奖 · 表彰「宏观经济稳定政策的微观基础」</small></h1>
+  <p class="lede">1970 年代的滞胀打垮了旧版凯恩斯模型；此后近半个世纪，这两位经济学家把宏观模型从「变量之间的关系式」
+     重建为「无数家庭与企业前瞻决策的总和」。今天全世界央行与财政部用来判断该加息还是该减税的模型，核心就是他们的作品。</p>
+
+  <div class="cards">
+    <div class="card"><div class="k">获奖者</div><div class="v">罗伯特·E·霍尔</div>
+      <div class="d">Robert E. Hall，83 岁，1943 年生于加州帕洛阿尔托；斯坦福大学经济学教授、胡佛研究所高级研究员（荣休）</div></div>
+    <div class="card"><div class="k">获奖者</div><div class="v">迈克尔·伍德福德</div>
+      <div class="d">Michael Woodford，71 岁，1955 年生于马萨诸塞州奇科皮；哥伦比亚大学 John Bates Clark 政治经济学讲席教授</div></div>
+    <div class="card"><div class="k">奖金（两人平分）</div><div class="v">1,200 万瑞典克朗</div>
+      <div class="d">总额约 1,210,752 美元（约 8,099,316 元人民币）；每人 600 万克朗，约 605,376 美元（约 4,049,658 元）</div></div>
+    <div class="card"><div class="k">时间</div><div class="v">2026-10-12</div>
+      <div class="d">斯德哥尔摩公告；12 月 10 日（诺贝尔逝世纪念日）与其他奖项一同颁发</div></div>
+  </div>
+
+  <div class="tldr">
+    <h3>30 秒速览</h3>
+    <ul>
+      <li><b>他们解决什么问题</b>：1930 年代传下来的凯恩斯模型在 1970 年代失灵（高通胀与高失业同时出现）。病根是模型只用宏观变量之间的统计关系，而这类关系会随政策本身改变而失效（<b>卢卡斯批判</b>）。</li>
+      <li><b>霍尔的贡献（1978）</b>：证明「消费的变化不可能被预测」——因为消费只对新信息反应，而新信息按定义不可预测。这给宏观模型装上了可检验的、前瞻的消费者。1982 年他与米什金用家庭微观数据算出：约 <b>80% 的家庭按未来预期消费，20% 是「手到口」</b>。</li>
+      <li><b>伍德福德的贡献（2003）</b>：把无数零件组装成一座三方程「实验室」——新凯恩斯模型。它只用一个产出缺口、一个通胀、一个利率就描述了整台经济机器，还能回答「加息多少、何时加、怎么向市场解释」。</li>
+      <li><b>为什么重要</b>：全球央行与财政部今天都在用这套模型；它也让<b>央行沟通与透明度</b>从公关技巧变成政策工具，并让 2008 年、2020 年、2021—2025 年的冲击没有演变成 1970 年代式的长期滞胀。</li>
+      <li><b>给你的一句话</b>：把「不可测的东西」改造成「可检验的失败条件」，先立基准再量化偏离，用透明换取可信 —— 这是两位得主的共同方法论，也是普通人能直接借用的部分。</li>
+    </ul>
+  </div>
+
+  <nav class="toc">
+    <a href="#why">01 为什么是这条脉络</a>
+    <a href="#hall">02 霍尔</a>
+    <a href="#woodford">03 伍德福德</a>
+    <a href="#model">04 三方程模型怎么读</a>
+    <a href="#policy">05 落地、检验与争议</a>
+    <a href="#lessons">06 对个人的启示</a>
+    <a href="#glossary">07 术语表</a>
+    <a href="#sources">08 数据来源</a>
+  </nav>
+</header>
+
+<main>
+
+<section id="why">
+  <h2><span class="n">01</span>为什么是这条脉络：稳定政策失灵之后的重建</h2>
+  <p class="sub">要理解这份奖，得先把「稳定政策」这件事的失败史讲清楚。它是从一次失败里长出来的。</p>
+
+  <p>稳定政策的目标很朴素：不要让经济长期停在高失业或失控通胀里。手段只有两类 —— 央行调利率，政府调税收与支出。
+     凯恩斯在 1936 年给出的解释是「总需求不足」：产能和工人都在，但买家退场了，于是政府出手把需求推回去。</p>
+
+  <p>战后的实践一度很顺，因为模型里的大小关系（比如通胀与失业此消彼长的<b>菲利普斯曲线</b>、
+     消费与可支配收入的固定比例）看起来稳定可算：失业率高一个百分点，就把利率或支出调多少，账算得很清楚。</p>
+
+  <p>1970 年代的石油危机把这张账本撕开了：通胀上升的同时失业也在上升，收入与消费的关系也不再可靠。
+     凯恩斯式的稳定政策不但没救场，反而在错误的时点推出刺激，代价是整整十年的低增长、高失业与高通胀。</p>
+
+  <h3>卢卡斯批判：为什么「关系式」不能用来做政策</h3>
+  <p>罗伯特·卢卡斯（1995 年得主）给出的诊断是致命的：通胀来自成千上万家企业的定价决策，消费来自数百万家庭的决策；
+     如果模型只拟合这些宏观变量之间的历史相关关系，那么一旦政府系统性地利用这种关系，人们的决策就会改变，关系本身随之失效。
+     结论是：模型必须建在<b>不易随政策变化而改变的深层参数</b>上 —— 也就是「微观基础」（microfoundations）。</p>
+
+  <p>但话说起来容易：真正难的是既要微观可信，又要<b>简单到央行能天天用</b>。1980 年代的主流答案（基德兰德与普雷斯科特 1982 年的真实经济周期模型）
+     虽然也建在微观基础上，却假设市场完美、价格灵活，等于说政府没有必要稳定经济。霍尔与伍德福德走的是另一条路：
+     保留市场失灵（价格黏性），但把失灵<b>用个体的定价与消费行为显式写出来</b>。</p>
+
+  <div class="tblwrap"><table class="cmp"><thead><tr><th>对比项</th><th>传统凯恩斯 IS-LM / AS-AD</th><th>真实经济周期（RBC）</th><th>新凯恩斯（本奖）</th></tr></thead><tbody><tr><td>消费者行为</td><td>按当期可支配收入的机械函数消费（规则式）</td><td>前瞻、最优，但市场完美</td><td>前瞻、最优（<b>霍尔 1978</b>），并允许部分家庭受流动性约束</td></tr><tr><td>价格与工资</td><td>外生给定黏性，缺乏微观来源</td><td>完全灵活，市场出清</td><td>企业自愿定价 + 调整成本 → <b>内生黏性</b></td></tr><tr><td>政策工具</td><td>控制货币量 M，利率只是中间变量</td><td>基本不需要政策</td><td>直接设定<b>利率</b>（泰勒规则）</td></tr><tr><td>政策结论</td><td>乘数大、可精确微调（γ≈2/3 时政府支出乘数约 3）</td><td>稳定政策无用</td><td>政策有效，但效果取决于预期与沟通</td></tr><tr><td>能否做政策评估</td><td>不能（卢卡斯批判命中）</td><td>能，但假设过强</td><td>能，且能给出福利标准</td></tr></tbody></table></div>
+
+  <figure class="fig">
+    <svg viewBox="0 0 900 330" role="img" aria-label="从 1898 年维克塞尔到 2026 年诺贝尔奖的思想时间线"><line class="axl" x1="70" y1="168" x2="830" y2="168"/><line class="tick" x1="70.0" y1="160" x2="70.0" y2="176"/><circle class="dot" cx="70.0" cy="168" r="4.5"/><line class="stem" x1="70.0" y1="160" x2="70.0" y2="122"/><text class="tyr" x="70.0" y="94">1898</text><text class="ttl mid" x="70.0" y="112">维克塞尔《利息与价格》</text><text class="tds mid" x="70.0" y="130">提出自然利率：央行靠利率而非货币量稳定物价</text><line class="tick" x1="178.6" y1="160" x2="178.6" y2="176"/><circle class="dot" cx="178.6" cy="168" r="4.5"/><line class="stem" x1="178.6" y1="176" x2="178.6" y2="202"/><text class="tyr" x="178.6" y="220">1936</text><text class="ttl mid" x="178.6" y="238">凯恩斯《通论》</text><text class="tds mid" x="178.6" y="256">需求不足 → 政府逆周期调节，稳定政策的起点</text><line class="tick" x1="287.1" y1="160" x2="287.1" y2="176"/><circle class="dot" cx="287.1" cy="168" r="4.5"/><line class="stem" x1="287.1" y1="160" x2="287.1" y2="122"/><text class="tyr" x="287.1" y="94">1976</text><text class="ttl mid" x="287.1" y="112">卢卡斯批判</text><text class="tds mid" x="287.1" y="130">约化式关系会随政策改变而失效，政策评估必须回到微观</text><line class="tick" x1="395.7" y1="160" x2="395.7" y2="176"/><circle class="dot" cx="395.7" cy="168" r="4.5"/><line class="stem" x1="395.7" y1="176" x2="395.7" y2="202"/><text class="tyr" x="395.7" y="220">1978</text><text class="ttl mid" x="395.7" y="238">霍尔《随机含义》</text><text class="tds mid" x="395.7" y="256">消费变化不可预测 —— 消费的理性预期基准</text><line class="tick" x1="504.3" y1="160" x2="504.3" y2="176"/><circle class="dot" cx="504.3" cy="168" r="4.5"/><line class="stem" x1="504.3" y1="160" x2="504.3" y2="122"/><text class="tyr" x="504.3" y="94">1982</text><text class="ttl mid" x="504.3" y="112">霍尔-米什金</text><text class="tds mid" x="504.3" y="130">微观家庭数据：80% 前瞻，20% 手到口</text><line class="tick" x1="612.9" y1="160" x2="612.9" y2="176"/><circle class="dot" cx="612.9" cy="168" r="4.5"/><line class="stem" x1="612.9" y1="176" x2="612.9" y2="202"/><text class="tyr" x="612.9" y="220">2003</text><text class="ttl mid" x="612.9" y="238">《利息与价格》</text><text class="tds mid" x="612.9" y="256">新凯恩斯三方程模型成型；同年零利率下限研究</text><line class="tick" x1="721.4" y1="160" x2="721.4" y2="176"/><circle class="dot" cx="721.4" cy="168" r="4.5"/><line class="stem" x1="721.4" y1="160" x2="721.4" y2="122"/><text class="tyr" x="721.4" y="94">2008</text><text class="ttl mid" x="721.4" y="112">大衰退的检验</text><text class="tds mid" x="721.4" y="130">新模型进入央行与财政部的日常工具箱</text><line class="tick" x1="830.0" y1="160" x2="830.0" y2="176"/><circle class="dot" cx="830.0" cy="168" r="4.5"/><line class="stem" x1="830.0" y1="176" x2="830.0" y2="202"/><text class="tyr" x="830.0" y="220">2026</text><text class="ttl mid" x="830.0" y="238">诺贝尔经济学奖</text><text class="tds mid" x="830.0" y="256">表彰「宏观经济稳定政策的微观基础」</text></svg>
+    <figcaption>从维克塞尔的自然利率（1898）到 2026 年的这份奖。注意中间的断点：1976 年的卢卡斯批判之后，
+      宏观模型必须重建；霍尔 1978 年补上「消费者」，伍德福德 2003 年补上「企业与央行」，这座建筑才重新立起来。</figcaption>
+  </figure>
+
+  <div class="note"><b>一句话记住分工</b>：霍尔提供了新凯恩斯模型里「消费者」那一块基石，伍德福德提供了整栋建筑的施工图。
+     颁奖词把它们合起来称为：「宏观经济稳定政策的微观基础」。</div>
+</section>
+
+
+<section id="hall">
+  <h2><span class="n">02</span>罗伯特·E·霍尔：把「不可预测」变成可检验的断言</h2>
+  <p class="sub">他的代表作是本页所有内容的枢纽：一篇 1978 年的论文，把消费研究的方向整个掉了个头。</p>
+
+  <div class="tblwrap"><table class="bio"><thead><tr><th>年份</th><th>节点</th><th>说明</th></tr></thead><tbody><tr><td>1943</td><td>生于加州帕洛阿尔托</td><td>全名 Robert Ernest Hall</td></tr><tr><td>1964</td><td>加州大学伯克利分校经济学学士</td><td>本科论文题目《Investment in Equipment and Structures, 1929—1961》</td></tr><tr><td>1967</td><td>麻省理工学院博士</td><td>导师：罗伯特·索洛（1987 年诺奖得主）；论文《Essays on the Theory of Wealth》</td></tr><tr><td>1967—1970</td><td>伯克利经济学系任教</td><td>已在读博期间与乔根森完成 1967 年那篇投资理论名作</td></tr><tr><td>此后</td><td>斯坦福大学 / 胡佛研究所</td><td>现为 Robert and Carole McNeil 胡佛联合高级研究员、经济学教授（荣休）</td></tr><tr><td>1978—2024</td><td>NBER 经济周期测定委员会主席（47 年）</td><td>美国经济衰退的起止日期，由这个委员会认定并对外公布</td></tr><tr><td>2010</td><td>美国经济学会（AEA）会长</td><td>美国经济学界最高学术职务之一</td></tr><tr><td>2026</td><td>获诺贝尔经济学奖</td><td>与伍德福德平分</td></tr></tbody></table></div>
+
+  <h3>三次「反转式」贡献</h3>
+  <div class="tblwrap"><table class="works"><thead><tr><th>成果</th><th>核心想法</th><th>为什么重要</th></tr></thead><tbody><tr><td>霍尔—乔根森（1967）<br><i>Tax Policy and Investment Behavior</i></td><td>用「使用者成本」把税收政策与企业投资决策接起来：投资取决于资本的使用成本，而税制直接改变这个成本。</td><td>当时就被称为「instant classic」：它是税收政策与投资行为之间第一套可计算的微观桥梁，也奠定了现代投资理论框架。</td></tr><tr><td>霍尔（1978）<br><i>随机含义的生命周期—永久收入假说</i></td><td>如果家庭真的按对未来收入的预期来消费，那么「消费」本身就是预期的最好度量 —— 于是可检验的预测变成：<b>控制住今天的消费后，任何已知信息都不应能预测明天的消费</b>。</td><td>把不可观测的预期问题，转成了一个可以用回归做死的检验。（理论细节见下）</td></tr><tr><td>霍尔与米什金（1982）<br><i>消费对暂时性收入的敏感性</i></td><td>用密歇根大学 PSID 面板数据（2,309 个家庭、1969—1975 年的食品消费）第一次在<b>家庭层面</b>检验这套理论，并把「手到口」家庭比例估了出来。</td><td>结论是双向的：80% 的消费行为符合前瞻理论，20% 的家庭受流动性约束、只按当期收入消费。这个「两类家庭」结构今天仍在央行模型里（演化为 HANK 异质主体模型）。</td></tr><tr><td>霍尔（1988a）<br><i>消费中的跨期替代</i></td><td>估计家庭愿意为了更高回报推迟消费的程度（跨期替代弹性）。</td><td>利率变动能不能改变消费，取决于这个参数；它是新凯恩斯模型中利率影响需求的关键系数。</td></tr><tr><td>霍尔（1988b）<br><i>价格与边际成本之间的关系</i></td><td>用价格与边际成本的比值反推美国工业的市场势力与加成（markup）。</td><td>解释了「为什么需求上升时价格涨得比成本慢」——这是需求能驱动产出、即稳定政策有效的微观前提之一。</td></tr><tr><td>霍尔（2005 / 2008）<br>均衡工资黏性 · 与米尔格罗姆</td><td>工资黏性不必只怪工会或合同：企业不愿在萧条期雇人（搜寻与风险错配），而失业者又无法集体发出「我愿意低薪工作」的信号，工资便具有黏性。</td><td>为劳动力市场摩擦提供了微观解释，也解释了为何失业的回落如此缓慢。</td></tr><tr><td>霍尔（2017）<br><i>高贴现率与高失业</i></td><td>衰退中主导力量是贴现率的上升（人们对未来更没耐心、更看重当下），而非工资刚性本身。</td><td>把「衰退」解释为一种偏好冲击，容纳了金融市场对实体经济的传导。」</td></tr><tr><td>霍尔—拉布什卡单一税（1983、1985）</td><td>与阿尔文·拉布什卡提出「单一税」方案：对企业与个人所得按同一税率征税、不对投资征税，同时保留一定的累进性设计。</td><td>面向政策设计的代表作之一（《Low Tax, Simple Tax, Flat Tax》1983、《The Flat Tax》1985，胡佛出版社），曾为东欧国家的税制改革提供咨询。</td></tr><tr><td>霍尔与库德利亚克（2019—2020）</td><td>失业者并非同质：很多人「有工作但没有岗位」（临时召回、零工时），据此重构劳动力市场流量与复苏路径。</td><td>解释了美国经济为何能从过去 70 年的每一次衰退中较为一致地恢复，也修正了对失业率的口径理解。</td></tr></tbody></table></div>
+
+  <h3>理论细节：为什么消费变化不可预测</h3>
+  <p>出发点是一个标准的最优消费问题：家庭最大化贴现效用 <code>E_t Σ β^τ u(c_{t+τ})</code>，受限于「一生的支出不超过一生的收入加初始财富」。
+     求一阶条件，得到欧拉方程：</p>
+  <pre>u'(c_t) = (1+r)·β · E_t{ u'(c_t+1) }        （消费欧拉方程：今天少消费一单位的效用损失
+                                               = 明天多消费一单位的期望效用收益）</pre>
+  <p>再假设效用为二次型（可得线性近似），这条方程就变成一个可回归的形式：</p>
+  <pre>c_t+1 = 常数 + (1/((1+r)·β)) · c_t - ε_t+1,   E_t{ε_t+1} = 0
+若 (1+r)·β = 1，则简化为：  E_t{ c_t+1 } = c_t     （消费是「鞅」，即广义随机游走）</pre>
+  <p>霍尔的关键洞见在于<b>检验的方向</b>：把「已知信息能不能预测消费变化」变成零假设，用收入及其任意滞后项等变量去回归。
+     他发现——在控制了当期消费后，这些变量的预测力极小。这在当时是件令人意外的事：一个本来只应在个体层面成立的理论，
+     在把数百万家庭的差异加总掉之后，居然还能在加总数据上站得住。</p>
+
+  <div class="note"><b>注意两个诚实的例外</b>：其一，霍尔自己就报告了资产市场估值对消费变化有（温和的）预测力，与纯粹形式不符；
+     其二，后续文献在家庭层面发现了明确的「过度敏感」：家庭消费对暂时性收入变动的反应远超理论预测。这两处偏差不是瑕疵，
+     而是后续二十年研究的入口 —— 顺着它，学界加上了借贷约束、有限理性等修正。</div>
+
+  <figure class="fig">
+    <svg viewBox="0 0 880 330" role="img" aria-label="对暂时性收入的边际消费倾向：理论基准约 2%，实证估计 11% 至 40%"><text class="cap" x="250" y="22">消费对暂时性收入的边际消费倾向（%）</text><line class="gl" x1="250.0" y1="46" x2="250.0" y2="292"/><text class="ax mid" x="250.0" y="310">0</text><line class="gl" x1="372.2" y1="46" x2="372.2" y2="292"/><text class="ax mid" x="372.2" y="310">10</text><line class="gl" x1="494.4" y1="46" x2="494.4" y2="292"/><text class="ax mid" x="494.4" y="310">20</text><line class="gl" x1="616.7" y1="46" x2="616.7" y2="292"/><text class="ax mid" x="616.7" y="310">30</text><line class="gl" x1="738.9" y1="46" x2="738.9" y2="292"/><text class="ax mid" x="738.9" y="310">40</text><text class="rl end" x="236" y="67">永久收入理论的预测（基准）</text><rect class="bar-theory" x="274.4" y="53" width="3.0" height="18" rx="3"/><text class="vl" x="282.4" y="67">2%</text><text class="rl end" x="236" y="107">发表偏倚校正后的微观文献均值</text><rect class="bar-emp" x="384.4" y="93" width="3.0" height="18" rx="3"/><text class="vl" x="392.4" y="107">11%</text><text class="rl end" x="236" y="147">2008 年美国刺激支票</text><rect class="bar-emp" x="396.7" y="133" width="220.0" height="18" rx="3"/><text class="vl" x="624.7" y="147">12–30%</text><text class="rl end" x="236" y="187">2025 年法国随机实验（一个月内）</text><rect class="bar-emp" x="531.1" y="173" width="3.0" height="18" rx="3"/><text class="vl" x="539.1" y="187">23%</text><text class="rl end" x="236" y="227">微观文献均值（144 项研究）</text><rect class="bar-emp" x="506.7" y="213" width="3.0" height="18" rx="3"/><text class="vl" x="514.7" y="227">21%</text><text class="rl end" x="236" y="267">2001 年美国退税（三个月内）</text><rect class="bar-emp" x="494.4" y="253" width="244.4" height="18" rx="3"/><text class="vl" x="746.9" y="267">20–40%</text></svg>
+    <figcaption>实证坐标：对「暂时性收入」的边际消费倾向（MPC），即多拿到 100 元临时收入会花掉多少。
+      灰色柱是永久收入理论的预测（约 2%，量级相当于利率）；蓝色柱是实证估计值，普遍高出一个数量级。
+      这组数差异正是「手到口」家庭存在的量化证据 —— 也直接决定财政刺激该怎么发、发给谁。</figcaption>
+  </figure>
+</section>
+
+
+<section id="woodford">
+  <h2><span class="n">03</span>迈克尔·伍德福德：给稳定政策造一座「实验室」</h2>
+  <p class="sub">如果霍尔补上了消费者，伍德福德则把消费者、企业与央行装进了同一个可运行、可算福利的框架里。</p>
+
+  <div class="tblwrap"><table class="bio"><thead><tr><th>年份</th><th>节点</th><th>说明</th></tr></thead><tbody><tr><td>1955</td><td>生于马萨诸塞州奇科皮</td><td>全名 Michael Dean Woodford</td></tr><tr><td>1977</td><td>芝加哥大学学士（A.B.）</td><td>本科毕业后转入耶鲁法学院，经济学博士另在麻省理工学院完成</td></tr><tr><td>1980</td><td>耶鲁法学院法学博士（J.D.）</td><td>法律训练留下的「必须给出理由」的意识，后来成了他关于央行沟通主张的底色</td></tr><tr><td>1981—1986</td><td>麦克阿瑟基金会奖学金（MacArthur Fellow）</td><td>资助其早期研究</td></tr><tr><td>1983</td><td>麻省理工学院经济学博士</td><td>论文《Essays in Intertemporal Economics》，导师 Timothy Kehoe</td></tr><tr><td>早期—2004</td><td>哥伦比亚 → 芝加哥 → 普林斯顿 → 哥伦比亚</td><td>先在哥大任教，后转芝加哥、普林斯顿</td></tr><tr><td>2004 至今</td><td>哥伦比亚大学 John Bates Clark 政治经济学讲席教授</td><td>同年起任 CEPR 研究员</td></tr><tr><td>2007</td><td>德意志银行金融经济学奖</td><td>获奖理由：著作《利息与价格》「迅速成为学界与央行同事之间货币理论的标准参考」</td></tr><tr><td>2018</td><td>法兰西银行 / 图卢兹经济学院货币经济学奖</td><td>同一领域的重要奖项</td></tr><tr><td>2024—2025</td><td>内默斯经济学奖；BBVA 基金会知识前沿奖</td><td>BBVA 奖第 17 届，与布兰查德、加尔í 共享（2025 年 2 月公布）</td></tr><tr><td>2025—2026</td><td>加州大学伯克利分校访问学者</td><td>与该校宏观、行为经济学团队合作</td></tr><tr><td>2026</td><td>获诺贝尔经济学奖</td><td>与霍尔平分</td></tr></tbody></table></div>
+
+  <h3>从零件到整机</h3>
+  <div class="tblwrap"><table class="works"><thead><tr><th>成果</th><th>核心想法</th><th>为什么重要</th></tr></thead><tbody><tr><td>罗滕伯格—伍德福德（1991、1992、1997、1999）</td><td>把垄断竞争、名义黏性放进完全动态的一般均衡模型，并用真实数据<b>估计</b>它：价格—成本的加成在周期中反向变动（产出上升时加价收窄）。</td><td>1997 年那篇给出了第一套「以优化为基础的计量框架」，使新凯恩斯模型从理论玩具变成可以拿数据校准、可以预测政策的工具。</td></tr><tr><td>伍德福德（1995、2001）<br>价格水平确定性 / 财政对价格稳定的要求</td><td>在央行不控制货币总量的世界里，价格水平仍可被确定 —— 但需要财政政策配合（若财政不配合，通胀最终由财政赤字决定）。</td><td>开创了「财政的价格水平理论」这条线，也说明货币政策与财政政策必须联合分析，这成为本奖特别强调的一点。</td></tr><tr><td>伍德福德（1999）<br>最优货币政策的「惯性」与时间一致视角</td><td>最优政策看起来有惯性（利率缓慢调整），而且必须用「不受时间影响的规则」来刻画承诺，才能避免事后偏离最优计划的诱惑。</td><td>把基德兰德—普雷斯科特（1977）的「时间不一致性」落到了可操作的规则设计上。</td></tr><tr><td>伍德福德（2003）<br><i>Interest and Prices</i></td><td>把前述零件装配成一个完整的新凯恩斯模型，并给出福利分析：三方程模型成为此后所有版本的母版。书名致敬维克塞尔 1898 年《利息与价格》。</td><td>本奖的核心文献。它同时给出了「该怎么做」的规范回答：包括一个可证明最优的利率规则。</td></tr><tr><td>埃格特松—伍德福德（2003）<br>零利率与最优货币政策</td><td>当利率触到零下限，常规货币政策失效，最优政策反而要求「承诺未来维持宽松」，并且这类承诺的<b>可信度</b>决定成败。</td><td>提前 5 年给出了 2008 年后各国央行真正在做的事：前瞻指引、资产购买、把预期拉长。</td></tr><tr><td>伍德福德（2005、2012）<br>央行沟通与低利率下的政策替代工具</td><td>把「透明度」正式写进政策工具箱：公开目标与方法、事前说明应对计划、事后解释偏差，能显著提高政策的效力；低利率时期则要依靠预期管理而非仅仅买入资产。</td><td>央行沟通从公关问题变成理论问题；今天几乎所有央行的「前瞻指引」都可追溯到这里。</td></tr><tr><td>伍德福德（2013、2020、2022 及近期研究）</td><td>把理性预期换成<b>有限理性</b>：人们基于不精确的心智表征与有限前瞻做决策（借鉴认知心理学与神经科学）。</td><td>直面本框架最有名的弱点（理性预期），检查结论在「人不是完美计算器」时是否仍然成立。</td></tr></tbody></table></div>
+
+  <h3>他本人怎么说</h3>
+  <p>获奖当天凌晨 4:30 被从斯德哥尔摩打来的电话叫醒，他当天上午还要监考，最后没有取消考试。访谈里有两段话，比任何总结都更能说明他的问题意识：</p>
+  <div class="note">「大家更敏感、更认真对待的<b>是瑞典的做法</b>：公开、解释做过什么、坦诚说明哪些结果和预测不一样、为什么不一样，并提前谈未来最可能怎么处理。
+     我一直很佩服这种做法，认为大家都能从中学到东西。」<br>
+     —— 关于透明度的价值：它既改善政策结果，也提升政策决定的民主正当性。</div>
+  <div class="note">「我的研究里对『事情是如何向人们解释的』很敏感，这不是因为政府有权力去推动经济，而是<b>公共当局的角色本应向人们说明在做什么</b>，
+     包括说明理由。……一个市场体系要运转，必须有<b>一套给出理由的结构</b>。比起许多从经济学课堂一路读上来的研究者，这种感受对我来说更自然。」<br>
+     —— 法学出身带来的「局外人视角」，被他视为自己研究风格的来源之一。</div>
+</section>
+
+
+<section id="model">
+  <h2><span class="n">04</span>三方程模型怎么读：一台只有三个表盘的经济机器</h2>
+  <p class="sub">这是本奖最实用的部分。整台机器只用三个变量：产出缺口、通胀、名义利率。</p>
+
+  <p>所谓「产出缺口」，是实际产出与<b>自然产出</b>之差。自然产出不是「满负荷产能」，而是<b>假设价格可以自由变动时</b>会出现的产出水平。
+     所以缺口衡量的不是「有没有空闲资源」，而是「价格没来得及调整，导致资源被错配了多少」。</p>
+
+  <pre>① 新凯恩斯 IS 曲线（需求）
+   ỹ_t = E_t{ ỹ_t+1 } − (1/σ)·( i_t − E_t{ π_t+1 } − rⁿ_t )
+
+② 新凯恩斯菲利普斯曲线（通胀）
+   π_t = β · E_t{ π_t+1 } + κ · ỹ_t
+
+③ 政策规则（央行）
+   i_t = ρ + φ_π · π_t + φ_y · ỹ_t + v_t ,   并要求 φ_π &gt; 1
+
+变量：ỹ = 产出缺口，π = 通胀率，i = 名义利率，rⁿ = 自然实际利率，
+      v = 央行意料之外的利率冲击（正值为紧缩）；σ、β、κ、φ 为参数。</pre>
+
+  <div class="tblwrap"><table class="eq"><thead><tr><th>方程</th><th>说的是什么</th><th>读法要点</th></tr></thead><tbody><tr><td>① IS 曲线</td><td>今天的需求取决于明天的预期需求，减去一个「利率缺口」：实际利率高于自然利率时会压需求，低于则刺激需求。</td><td>它就是霍尔消费理论的线性版本 —— <b>没有利率变动时，消费的边际效用变化不可预测</b>。与老 IS 曲线的区别：这里出现的是动态缺口与预期通胀，不是当期名义利率与产出的简单负相关。</td></tr><tr><td>② 菲利普斯曲线</td><td>通胀取决于预期的未来通胀，加上产出缺口带来的成本压力。</td><td>由企业定价行为推出，因此<b>本质上是前瞻的</b>：预期别人涨价，今天就先涨价。它取代了老式「通胀—失业」曲线，也因此让预期管理与公信力变得关键。</td></tr><tr><td>③ 政策规则</td><td>央行按通胀与产出缺口调整利率；φ_π &gt; 1 意味着通胀涨 1 个点，名义利率要涨超过 1 个点，从而抬高实际利率。</td><td>即「泰勒规则」（泰勒 1993）。伍德福德 2003 年的书进一步证明：在某些条件下，这类规则就是<b>最优</b>政策，这让「怎么操作」第一次有了福利意义上的依据。</td></tr></tbody></table></div>
+
+  <h3>两类冲击，两种相反的动作</h3>
+  <p>这套模型最有价值的产出，是它要求先判断冲击的<b>性质</b>，再决定方向 —— 而不是看到产出下滑就一律刺激。</p>
+  <div class="tblwrap"><table class="shock"><thead><tr><th>冲击</th><th>产出缺口</th><th>通胀</th><th>建议动作</th></tr></thead><tbody><tr><td>需求正冲击（例如信贷扩张、财政刺激）</td><td>转正（过热）</td><td>上升</td><td>刹车：加息、收紧财政</td></tr><tr><td>需求负冲击（例如信心崩塌、家庭减少消费）</td><td>转负（衰退）</td><td>下降</td><td>加速：降息、增加转移支付</td></tr><tr><td>供给正冲击（例如技术突破、能源降价）</td><td>转负</td><td>下降</td><td>加速（自然产出上升，实际产出跟不上）</td></tr><tr><td>供给负冲击（例如能源价格暴涨、供应链中断）</td><td>可能转正</td><td>上升</td><td><b>刹车：加息</b>—— 这正是与 1970 年代做法的关键区别</td></tr></tbody></table></div>
+  <p>最后一行值得停一下：负向供给冲击会让<b>自然产出下降</b>。即使实际需求没有增加，缺口也可能变成正的（因为分母变小了），
+     于是需求相对过剩、通胀上行。1970 年代的教训是按凯恩斯直觉去刺激，结果是通胀失控；新模型的建议恰恰相反 —— 适度收紧，避免通胀预期脱锚。</p>
+</section>
+
+
+<section id="policy">
+  <h2><span class="n">05</span>落地、检验与争议：这套模型真的让经济更稳了吗</h2>
+  <p class="sub">新模型不是书架上的理论，过去二十多年的每一次危机都在用它 —— 也被它检验。</p>
+
+  <h3>它改变了什么</h3>
+  <div class="tblwrap"><table class="impact"><thead><tr><th>变化</th><th>具体表现</th></tr></thead><tbody><tr><td>货币政策从「控制货币量」转向「设定利率」</td><td>现在绝大多数央行直接以政策利率为目标，并用规则化的方式回应通胀与产出缺口。伍德福德的工作为这种转变提供了理论基础。</td></tr><tr><td>央行的沟通成为正式工具</td><td>因为通胀与企业定价都是前瞻的，公开目标、事前说明应对方式、事后解释偏差，会直接改变经济主体的预期，从而提高政策效力。所谓「前瞻指引」在本质上依赖这一点。</td></tr><tr><td>财政政策也进入同一个框架</td><td>模型可以同时容纳税收、转移支付与政府债务，于是「刺激该发给谁、是给现金还是减税、央行会不会反向抵消」这类问题有了可比较的计算。微观数据还表明：把同样一笔钱发给<b>边际消费倾向高</b>的家庭，效果显著更大（见第 02 节的图）。</td></tr><tr><td>应对方式从「一律刺激」变成「先识别冲击性质」</td><td>分析的重心从宏观总量走势，转向微观层面究竟发生了什么：价格在哪些行业、哪些区域先动，劳动力市场的匹配效率是否变差。</td></tr></tbody></table></div>
+
+  <h3>两个被反复引用的对照</h3>
+  <div class="tblwrap"><table class="compare"><thead><tr><th>对照</th><th>旧世界</th><th>新世界</th><th>结论</th></tr></thead><tbody><tr><td>大萧条 vs 2008 年之后的复苏</td><td>1930 年代：失业长期高企、复苏极慢</td><td>2008 年后：反弹明显更快（艾肯格林与奥洛克 2010；德格劳韦与吉 2020 加入疫情衰退一并比较）</td><td>稳定政策的工具箱与判断力确有改善</td></tr><tr><td>1973 年石油冲击 vs 2021 年以来的通胀</td><td>1970 年代：通胀高企叠加增长停滞，持续近十年</td><td>2021 年起：通胀虽有高点，但没有演变成长期滞胀；多国研究（阿里等 2023、福布斯等 2024、布兰查德与伯南克 2024）认为政策反应不同是关键</td><td>「先收紧、别让预期脱锚」的思路起了作用</td></tr></tbody></table></div>
+  <p class="sub">官方背景文件对因果保持谨慎：很难证明反弹变快「全都是」政策之功，但学界共识是政策起了非常重要的作用。</p>
+
+  <h3>模型自己承认的四个弱点</h3>
+  <div class="tblwrap"><table class="limits"><thead><tr><th>弱点</th><th>说明</th></tr></thead><tbody><tr><td>线性化忽略零利率下限</td><td>核心模型用小扰动近似求解，而「利率不能显著低于零」是一种非线性约束。它在非常规时期会改变正常的动态，需要用全局求解的方法处理。</td></tr><tr><td>理性预期是强假设</td><td>模型假设所有人对未来的预期与模型自身的预测一致。而对黑天鹅（战争、疫情、政局突变）这类事件的预期形成，框架难以刻画。因此模型默认「通胀预期锚定在目标附近」—— 而<b>锚定本身不能被当作理所当然</b>。</td></tr><tr><td>价格黏性的具体形式偏「外挂」</td><td>卡尔沃式或罗滕伯格式的定价假设很好用，但不是从更基本的成本结构推出来的。在需求或成本剧烈变化时，企业定价频率会变化，这类公式可能失真。</td></tr><tr><td>前瞻指引之谜</td><td>理论上，承诺「很远的未来」保持宽松会对今天的需求产生巨大效果。但用标准模型做的实验发现，这种效果大得离谱（德尔内格罗等 2023）。学界提出了多种修补方案，尚无共识。</td></tr></tbody></table></div>
+
+  <div class="note"><b>它还解决不了什么</b>：新凯恩斯框架主要回答「冲击已经发生，怎么稳定」，而不是「如何防止冲击发生」。
+     疫情冲击显然无法被货币或财政政策预防；而 2008 年危机，多数分析认为部分风险本可通过〈事前的金融监管〉降低 —— 那属于另一套工具。
+     另外这场争论仍在继续：美联社报道提到，现任美联储主席沃什认为「前瞻指引」在美国走得过远，正试图收减央行对自身想法的表述量。
+     也就是说，本奖所奠基的这套思路，至今仍在被实践反复检验与调整。</div>
+</section>
+
+
+<section id="lessons">
+  <h2><span class="n">06</span>对个人的启示：能直接借用的九条方法论</h2>
+  <p class="sub">这一节不是颁奖词的内容，而是本页根据两位得主的实际做法整理的解读。每一条都写清了它对应的事实依据。</p>
+  <div class="tblwrap"><table class="lessons"><thead><tr><th>他们的做法</th><th>背后的原理</th><th>可以怎么用</th></tr></thead><tbody><tr><td><b>1. 把不可测的东西，改造成可检验的失败条件</b></td><td>预期无法观测，谁都测不了「家庭对未来收入的预期」。霍尔换了个方向：如果消费是由预期决定的，那么消费本身就在替预期说话 —— 于是可检验的命题变成「没有变量能预测消费变化」，这是一条能被数据打死的断言。</td><td>面对无法测量的复杂问题（团队士气、用户满意度、个人状态），不要停在「说不清」，而是写出一句<b>能被证伪的话</b>：如果我的判断是对的，什么现象应该不会出现？</td></tr><tr><td><b>2. 先立基准，再量化偏离</b></td><td>霍尔 1978 年给出的不是一堆系数，而是一个<b>基准</b>。正因为有了基准，后面的文献才能测出「偏离」：手到口家庭占两成、MPC 比理论高一个数量级。</td><td>做优化时也先有一个理论上「应该怎样」的基准线（理想流程、零缺陷、标准耗时），再用数据标出自己实际偏离了多少 —— 没有基准，改进就没有刻度。</td></tr><tr><td><b>3. 管预期，比管行动更省力</b></td><td>企业定价是前瞻的，所以央行公开计划就能影响今天的价格与需求。政策效力因此取决于<b>可信度</b>：说了不算，效果立刻打折。</td><td>带团队、做协同、对客户承诺，都尽量<b>提前说清规则</b>、事后主动解释「哪里和预期不一样、为什么」。可信度是可以累积的资产，也是唯一能让别人替你判断的东西。</td></tr><tr><td><b>4. 透明度有双重好处：结果更好，正当性更高</b></td><td>伍德福德把透明当成理论问题：既改善政策结果，也提升决策的民主正当性 —— 因为政策需要被理解，而不只是被执行。</td><td>把「说明理由」当作工作的一部分（决策依据、权衡取舍、放弃的方案），而不是额外负担。别人能复述你的理由，你的方案才真正落地。</td></tr><tr><td><b>5. 出身不决定视角，「外行」的追问是资产</b></td><td>伍德福德念完法学博士才转向经济学。他说正因如此，他对「事情如何向人解释」格外敏感，也更看重市场体系中的〈给出理由的结构〉。</td><td>跨界不是减分项：把新领域里那些「大家默认不用解释」的假设问一遍，往往是创新最容易发生的地方。反过来，跨行者要主动把理由讲透。</td></tr><tr><td><b>6. 长期主义：一篇 1978 年的论文，48 年后成为获奖理由</b></td><td>霍尔 1978 年发表那篇论文时 35 岁，今年 83 岁仍在写作；他主持 NBER 经济周期测定委员会整整 47 年（1978—2024）；1967 年那篇投资理论名作，是他在读博期间完成的。</td><td>真正有复利的产出，往往需要在一个问题上停留十年以上。判断一件事值不值得做，可以问：十年后它还会被引用、被使用吗？</td></tr><tr><td><b>7. 慷慨与传承，是回报周期最长的一项投资</b></td><td>伍德福德在普林斯顿指导过本科生埃米·纳卡穆拉与约恩·斯坦因松 —— 纳卡穆拉后来获 2019 年克拉克奖（美国最佳青年经济学家）。她的回忆是：本科论文卡在一个方程上，12 月 24 日发邮件，本来不指望有人回，结果他回了。</td><td>对别人「顺手帮一下」的成本很低，而它的复利发生在别人身上、很多年以后发生。带人时把时间花在答疑上，通常比花在展示上更有价值。</td></tr><tr><td><b>8. 对工具保持谦逊：把适用边界一起交付</b></td><td>这套模型是本奖的成果，也是官方背景文件里被逐条列出弱点的对象：理性预期、线性化、价格黏性形式、前瞻指引之谜。研究者自己先把它批一遍。</td><td>用任何模型、指标或框架做决策时，一并说明它的失效条件。知道「什么时候不能用」，比知道「它很好用」更能防止翻车。</td></tr><tr><td><b>9. 先判断原因，再决定方向</b></td><td>同样产出下滑：需求负冲击要放松，负向供给冲击（如能源暴涨）反而要收紧，否则通胀失控 —— 1970 年代的教训正在这里。</td><td>面对坏结果，先分清是「需求问题」（现有能力没人要）还是「供给问题」（成本结构变了）。两者的正确反应方向相反，用错方向会让事情更糟。</td></tr></tbody></table></div>
+</section>
+
+
+<section id="glossary">
+  <h2><span class="n">07</span>术语表</h2>
+  <p class="sub">本页出现的每个专业词，都在这里说清，不必另开搜索。</p>
+  <div class="tblwrap"><table class="gloss"><thead><tr><th>术语</th><th>一句话定义</th><th>在本页的位置</th></tr></thead><tbody><tr><td><b>微观基础（microfoundations）</b></td><td>把宏观现象解释为无数个体（家庭、企业）最优决策加总的结果，而不是宏观变量之间的统计关系</td><td>本奖的核心词；霍尔提供消费者那一块，伍德福德提供整栋建筑</td></tr><tr><td><b>卢卡斯批判</b></td><td>用历史相关关系做的模型，一旦政策系统性地利用它，人的行为就会变，关系本身随之失效</td><td>1970 年代模型失灵的理论诊断，也是「必须建微观基础」的理由</td></tr><tr><td><b>永久收入假说</b></td><td>消费取决于对未来一生收入的预期（永久收入），而不是当期收入</td><td>弗里德曼 1957 年提出；霍尔 1978 年给了它可检验的理性预期版本</td></tr><tr><td><b>消费平滑</b></td><td>人们偏好把消费在时间上摊平，因此收入的临时波动会被储蓄/借贷吸收</td><td>霍尔理论的直观含义，也是「退税不一定马上花掉」的原因</td></tr><tr><td><b>欧拉方程</b></td><td>跨期最优的一阶条件：今天少消费一单位的效用损失 = 明天多消费一单位的期望收益</td><td>霍尔检验的出发点；新凯恩斯 IS 曲线是它的线性版本</td></tr><tr><td><b>鞅 / 随机游走</b></td><td>给定今天的信息，明天的期望值等于今天的值；因此「变化」不可预测</td><td>霍尔结论的数学形式：消费是鞅，故消费变动不可预测</td></tr><tr><td><b>手到口（hand-to-mouth）</b></td><td>没有储蓄也无法借贷，只能把当期收入全部花掉的消费者</td><td>霍尔与米什金 1982 年估计约占两成；决定财政刺激该发给谁</td></tr><tr><td><b>边际消费倾向（MPC）</b></td><td>多拿到 1 元收入会花掉多少；针对「暂时性收入」的 MPC 是关键指标</td><td>本页第 02 节的图：理论约 2%，实证 11%—40%</td></tr><tr><td><b>自然利率（维克塞尔）</b></td><td>既不刺激也不抑制消费与投资的「中性」实际利率；低于它会刺激需求</td><td>维克塞尔 1898 年提出；伍德福德据此把央行政策重心从货币量移到利率</td></tr><tr><td><b>自然产出与产出缺口</b></td><td>自然产出＝假设价格可自由变动时的产出；缺口＝实际产出 − 自然产出</td><td>三方程模型的第一变量；注意它不等于「满负荷产能」</td></tr><tr><td><b>黏性价格 / 卡尔沃定价</b></td><td>企业不会每次成本变动就改价（调整有成本），因此价格调整是间断、错峰的</td><td>需求能影响产出的前提；也是模型中「外挂」程度最高、被批评最多的假设</td></tr><tr><td><b>泰勒规则</b></td><td>把政策利率写成通胀与产出缺口的函数，且对通胀的系数大于 1</td><td>1993 年由泰勒提出；伍德福德证明这类规则在某些条件下就是最优政策</td></tr><tr><td><b>零利率下限（ZLB）</b></td><td>利率不能显著低于零（否则大家都去持现金），于是常规降息空间有底</td><td>埃格特松与伍德福德 2003 年研究其最优应对：承诺未来继续宽松</td></tr><tr><td><b>前瞻指引</b></td><td>央行公开未来的政策意图，通过改变市场与家庭的预期来刺激或收紧今天的需求</td><td>低利率时代的主要工具；争议见「前瞻指引之谜」</td></tr><tr><td><b>时间不一致性</b></td><td>最优计划事后有偏离的诱惑，因此必须靠承诺与规则维持可信度</td><td>伍德福德 1999 年用「不受时间影响的视角」给出规则设计方法</td></tr></tbody></table></div>
+</section>
+
+
+<section id="sources">
+  <h2><span class="n">08</span>数据来源</h2>
+  <p class="sub">每个数字与事实都能追到出处。访问日期：2026-10-19（北京时间）。</p>
+  <div class="tblwrap"><table class="src"><thead><tr><th>本页用到的内容</th><th>来源</th><th>链接</th></tr></thead><tbody><tr><td>获奖者、获奖理由原文（「for microeconomic foundations of macroeconomic stabilisation」）、出生年、博士年份与机构、奖金 1,200 万瑞典克朗两人平分、公告日期 2026-10-12</td><td>瑞典皇家科学院新闻稿《Prize in Economic Sciences 2026》与获奖者事实页</td><td><a href="https://www.nobelprize.org/prizes/economic-sciences/2026/press-release/">新闻稿</a><br><a href="https://www.nobelprize.org/prizes/economic-sciences/2026/hall/facts/">霍尔事实页</a><br><a href="https://www.nobelprize.org/prizes/economic-sciences/2026/woodford/facts/">伍德福德事实页</a></td></tr><tr><td>1970 年代滞胀、凯恩斯与卢卡斯批判的前因后果、霍尔 1978 与米什金 1982（PSID 2,309 户、1969—1975、80% 前瞻 / 20% 手到口）、伍德福德三方程模型与自然利率、产出缺口、四类冲击的政策方向、模型弱点与政策评估、2008 后与 2021 后的对比</td><td>瑞典皇家科学院《通俗科学背景：微观基础带来宏观洞见》与《科学背景：宏观经济稳定化的微观基础》（后者含 MPC 实证汇总：2001 退税 20—40%、2008 刺激支票 12—30%、2025 年法国实验 23%、144 项研究均值 21%、发表偏倚校正后 11%、理论量级约 2%；以及 γ≈2/3 时政府支出乘数约 3、转移支付乘数约 2）</td><td><a href="https://www.nobelprize.org/uploads/2026/10/popular-economicsciencesprize2026.pdf">通俗背景（PDF）</a><br><a href="https://www.nobelprize.org/uploads/2026/10/advanced-economicsciencesprize2026.pdf">科学背景（PDF）</a></td></tr><tr><td>伍德福德访谈原文（4:30 被叫醒、当天监考、对瑞典通胀目标制与透明度的评价、法学出身带来的视角）与配图说明</td><td>诺贝尔奖官网：迈克尔·伍德福德获奖当日电话访谈实录</td><td><a href="https://www.nobelprize.org/prizes/economic-sciences/2026/woodford/interview/">访谈</a></td></tr><tr><td>霍尔的完整著作清单（1967 年与乔根森《Tax Policy and Investment Behavior》、1978、1988a/1988b、2005 工资黏性、2008 与米尔格罗姆、2017 高贴现率与高失业、2019—2020 与库德利亚克、单一税与教材），以及其现任职务名称</td><td>斯坦福大学霍尔个人网站「全部出版物」页与主页</td><td><a href="https://rehall.people.stanford.edu/all-publications">全部出版物</a><br><a href="https://rehall.people.stanford.edu/">主页</a></td></tr><tr><td>伍德福德的学历与任职经历（芝加哥 1977、耶鲁 1980、MIT 1983）、John Bates Clark 讲席、麦克阿瑟奖学金、德意志银行奖 2007、内默斯奖 2024、BBVA 奖 2025、当前研究转向有限理性与不精确心智表征</td><td>哥伦比亚大学伍德福德个人简介页</td><td><a href="https://blogs.cuit.columbia.edu/mw2230/biography/">简介</a></td></tr><tr><td>BBVA 基金会知识前沿奖第 17 届（2025 年 2 月 25 日公布，与布兰查德、加尔í 共享）及其评价用语</td><td>BBVA 基金会知识前沿奖官网公告</td><td><a href="https://www.frontiersofknowledgeawards-fbbva.es/noticias/frontiers-knowledge-award-blanchard-gali-woodford-economics-17-edition/">公告</a></td></tr><tr><td>两人与加州大学伯克利分校的关联（霍尔 1964 年本科毕业、1967—1970 年在该校任教、83 岁；伍德福德 2025—26 学年访问学者；纳卡穆拉与斯坦因松的回忆、纳卡穆拉 2019 年获克拉克奖）</td><td>加州大学伯克利分校新闻《Two winners of the 2026 Nobel Prize in economics have deep ties to UC Berkeley》</td><td><a href="https://news.berkeley.edu/2026/10/12/two-winners-of-the-2026-nobel-prize-in-economics-have-deep-ties-to-uc-berkeley/">报道</a></td></tr><tr><td>霍尔的职务（斯坦福 Robert and Carole McNeil 讲席、胡佛研究所高级研究员荣休）、1978—2024 年任 NBER 经济周期测定委员会主席、伍德福德任 CEPR 研究员及其在 CEPR 的论文</td><td>欧洲经济政策研究中心（CEPR）公告</td><td><a href="https://cepr.org/about/news/michael-woodford-awarded-2026-nobel-prize-economic-sciences">公告</a></td></tr><tr><td>两人获奖表态（霍尔「wonderful surprise」及自述研究方法、伍德福德「tremendous honor / surprise」）、诺贝尔经济学奖 1968 年由瑞典央行设立、12 月 10 日颁奖、美联储主席沃什收减前瞻指引、奖金折合美元约 120 万</td><td>美联社报道（WRAL 转载）与 CNBC 报道</td><td><a href="https://www.wral.com/news/ap/96f32-nobel-memorial-prize-in-economics-to-be-awarded-in-stockholm/">美联社（WRAL 转载）</a><br><a href="https://www.cnbc.com/2026/10/12/nobel-economics-prize-winner-woodford-hall.html">CNBC</a></td></tr><tr><td>零利率下限论文与低利率时期的政策工具论文</td><td>埃格特松与伍德福德《The Zero Bound on Interest Rates and Optimal Monetary Policy》（Brookings Papers on Economic Activity, 2003）；伍德福德《Methods of Policy Accommodation at the Interest-Rate Lower Bound》（2012 年杰克逊霍尔会议）</td><td><a href="https://www.brookings.edu/articles/the-zero-bound-on-interest-rates-and-optimal-monetary-policy/">布鲁金斯学会</a><br><a href="http://www.columbia.edu/~mw2230/JHole2012final.pdf">论文 PDF（哥大）</a></td></tr><tr><td>霍尔 1967 年与乔根森那篇被伯克利称为「instant classic」的论文原文</td><td>《Tax Policy and Investment Behavior》，American Economic Review, 1967</td><td><a href="https://web.stanford.edu/~rehall/Tax-Policy-AER-June-1967.pdf">论文 PDF</a></td></tr><tr><td>克朗折算美元与人民币（1 克朗 = 0.100896 美元 = 0.674943 元人民币）</td><td>汇率 API（open.er-api.com），取数时间 2026-10-18</td><td><a href="https://open.er-api.com/v6/latest/SEK">汇率</a></td></tr><tr><td>生平的交叉核对（霍尔 1964 年学士、1967 年 MIT 博士及导师索洛、2010 年 AEA 会长；伍德福德 1981—1986 麦克阿瑟奖学金、2004 年回哥伦比亚）</td><td>维基百科条目（仅作交叉核对，关键事实以上述官方来源为准）</td><td><a href="https://en.wikipedia.org/wiki/Robert_Hall_(economist)">Robert Hall</a><br><a href="https://en.wikipedia.org/wiki/Michael_Dean_Woodford">Michael Dean Woodford</a></td></tr></tbody></table></div>
+  <p class="sub">说明：本页为公开资料整理，「对个人的启示」一节为本站解读而非官方内容；
+     奖金折算按 2026-10-18 汇率现算（1 克朗 = 0.100896 美元 = 0.674943 元人民币），汇率每日变动，请以最新汇率为准。</p>
+</section>
+
+</main>
+<footer>
+  <p>本页自包含（无外部字体、脚本、图片依赖）；所有数字由生成脚本现算，可按页内公式与来源复算。</p>
+  <p>内容库：<a href="https://github.com/argsno/public-pages">github.com/argsno/public-pages</a></p>
+</footer>
+</div>
+</body>
+</html>
